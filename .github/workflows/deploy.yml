@@ -1,5 +1,3 @@
-# .github/workflows/deploy.yml
-
 name: Deploy to EC2
 
 on:
@@ -38,18 +36,20 @@ jobs:
           fi
 
       - name: Create pem file
-        run: echo "$EC2_KEY" | base64 -d > ec2-key.pem && chmod 600 ec2-key.pem
-
-      - name: Copy code and application.yml to EC2
         run: |
-          scp -i ec2-key.pem -o StrictHostKeyChecking=no -r $(ls -A | grep -v '^.git$') $EC2_USER@$HOST:~/app-tmp
+          echo "$EC2_KEY" | base64 -d > ec2-key.pem
+          chmod 600 ec2-key.pem
+
+      - name: Copy project files and application.yml to EC2
+        run: |
+          # .git 폴더 제외하고 전체 복사
+          rsync -av --exclude='.git' --delete ./ $EC2_USER@$HOST:~/app/
           scp -i ec2-key.pem -o StrictHostKeyChecking=no yml.txt $EC2_USER@$HOST:~/app/application.yml.b64
 
-      - name: Setup application.yml and restart container
+      - name: Setup application.yml and restart container on EC2
         run: |
           ssh -i ec2-key.pem -o StrictHostKeyChecking=no $EC2_USER@$HOST << EOF
-            cd ~/app
-            base64 -d application.yml.b64 > src/main/resources/application.yml
-            docker compose -f docker-compose.main.yml down
-            docker compose -f docker-compose.main.yml up --build -d
-          EOF
+            base64 -d ~/app/application.yml.b64 > ~/app/src/main/resources/application.yml
+            docker compose -f ~/app/\$DOCKER_YML down
+            docker compose -f ~/app/\$DOCKER_YML up --build -d
+EOF

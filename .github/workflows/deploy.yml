@@ -28,12 +28,13 @@ jobs:
         id: vars
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "HOST=$EC2_MAIN_HOST" >> $GITHUB_OUTPUT
-            echo "APPLICATION_YML=$APPLICATION_YML_PROD" >> $GITHUB_OUTPUT
+            printf "HOST=%s\n" "$EC2_MAIN_HOST" >> "$GITHUB_OUTPUT"
+            printf "APPLICATION_YML=%s\n" "$APPLICATION_YML_PROD" >> "$GITHUB_OUTPUT"
           elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
-            echo "HOST=$EC2_DEV_HOST" >> $GITHUB_OUTPUT
-            echo "APPLICATION_YML=$APPLICATION_YML_DEV" >> $GITHUB_OUTPUT
+            printf "HOST=%s\n" "$EC2_DEV_HOST" >> "$GITHUB_OUTPUT"
+            printf "APPLICATION_YML=%s\n" "$APPLICATION_YML_DEV" >> "$GITHUB_OUTPUT"
           fi
+
 
       - name: Create pem file
         run: echo "$EC2_KEY" | base64 -d > ec2-key.pem && chmod 600 ec2-key.pem

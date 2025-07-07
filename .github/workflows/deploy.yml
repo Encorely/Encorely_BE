@@ -52,6 +52,6 @@ jobs:
             base64 -d application.yml.b64 > src/main/resources/application.yml
             chmod +x ./gradlew
             ./gradlew build --no-daemon
-            docker-compose -f $DOCKER_YML down
-            docker-compose -f $DOCKER_YML up --build -d
+            docker-compose -f /home/ubuntu/app/$DOCKER_YML down
+            docker-compose -f /home/ubuntu/app/$DOCKER_YML up --build -d
           EOF

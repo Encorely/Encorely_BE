@@ -30,3 +30,7 @@ spring:
   custom:
     s3:
       bucket: encorely
+
+  redis:
+    host: redis
+    port: 6379

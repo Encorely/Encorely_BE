@@ -29,7 +29,7 @@ jobs:
             echo "${APPLICATION_YML_PROD}" > yml.txt
           else
             echo "HOST=${EC2_DEV_HOST}" >> "$GITHUB_ENV"
-            echo "DOCKER_YML=docker-compose.develop.yml" >> "$GITHUB_ENV"
+            echo "DOCKER_YML=docker-compose.dev.yml" >> "$GITHUB_ENV"
             echo "${APPLICATION_YML_DEV}" > yml.txt
           fi
 

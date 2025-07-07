@@ -42,10 +42,8 @@ jobs:
 
       - name: Copy project files and application.yml to EC2
         run: |
-          # .git 폴더 제외하고 전체 복사
-          rsync -av --exclude='.git' --delete ./ $EC2_USER@$HOST:~/app/
+          rsync -av -e "ssh -i ec2-key.pem -o StrictHostKeyChecking=no" --exclude='.git' --delete ./ $EC2_USER@$HOST:~/app/
           scp -i ec2-key.pem -o StrictHostKeyChecking=no yml.txt $EC2_USER@$HOST:~/app/application.yml.b64
-
       - name: Setup application.yml and restart container on EC2
         run: |
           ssh -i ec2-key.pem -o StrictHostKeyChecking=no $EC2_USER@$HOST base64 -d ~/app/application.yml.b64 > ~/app/src/main/resources/application.yml

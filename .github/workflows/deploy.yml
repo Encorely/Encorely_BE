@@ -46,6 +46,6 @@ jobs:
           scp -i ec2-key.pem -o StrictHostKeyChecking=no yml.txt $EC2_USER@$HOST:~/app/application.yml.b64
       - name: Setup application.yml and restart container on EC2
         run: |
-          ssh -i ec2-key.pem -o StrictHostKeyChecking=no $EC2_USER@$HOST base64 -d /home/ubuntu/app/application.yml.b64 > /home/ubuntu/app/src/main/resources/application.yml
+          ssh -i ec2-key.pem -o StrictHostKeyChecking=no $EC2_USER@$HOST "mkdir -p /home/ubuntu/app/src/main/resources && base64 -d /home/ubuntu/app/application.yml.b64 > /home/ubuntu/app/src/main/resources/application.yml"
           ssh -i ec2-key.pem -o StrictHostKeyChecking=no $EC2_USER@$HOST docker compose -f ~/app/$DOCKER_YML down
           ssh -i ec2-key.pem -o StrictHostKeyChecking=no $EC2_USER@$HOST docker compose -f ~/app/$DOCKER_YML up --build -d

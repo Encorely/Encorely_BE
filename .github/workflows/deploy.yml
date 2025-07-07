@@ -25,10 +25,10 @@ jobs:
 
         if [ "$BRANCH" = "main" ]; then
           HOST="${{ secrets.EC2_MAIN_HOST }}"
-          COMPOSE="docker-compose.yml"
+          COMPOSE="docker-compose.prod.yml"
         elif [ "$BRANCH" = "develop" ]; then
           HOST="${{ secrets.EC2_DEV_HOST }}"
-          COMPOSE="docker-compose.yml"
+          COMPOSE="docker-compose.dev.yml"
         else
           echo "Unsupported branch: $BRANCH"
           exit 1

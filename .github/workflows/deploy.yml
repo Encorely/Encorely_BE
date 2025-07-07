@@ -1,3 +1,5 @@
+# .github/workflows/deploy.yml
+
 name: Deploy to EC2
 
 on:
@@ -27,37 +29,27 @@ jobs:
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "HOST=${EC2_MAIN_HOST}" >> "$GITHUB_ENV"
-            echo "YML_CONTENT=${APPLICATION_YML_PROD}" >> "$GITHUB_ENV"
             echo "DOCKER_YML=docker-compose.main.yml" >> "$GITHUB_ENV"
+            echo "${APPLICATION_YML_PROD}" > yml.txt
           elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
             echo "HOST=${EC2_DEV_HOST}" >> "$GITHUB_ENV"
-            echo "YML_CONTENT=${APPLICATION_YML_DEV}" >> "$GITHUB_ENV"
             echo "DOCKER_YML=docker-compose.develop.yml" >> "$GITHUB_ENV"
+            echo "${APPLICATION_YML_DEV}" > yml.txt
           fi
 
       - name: Create pem file
         run: echo "$EC2_KEY" | base64 -d > ec2-key.pem && chmod 600 ec2-key.pem
 
-      - name: Copy code to EC2
+      - name: Copy code and application.yml to EC2
+        run: |
+          scp -i ec2-key.pem -o StrictHostKeyChecking=no -r . $EC2_USER@$HOST:~/app-tmp
+          scp -i ec2-key.pem -o StrictHostKeyChecking=no yml.txt $EC2_USER@$HOST:~/app/application.yml.b64
+
+      - name: Setup application.yml and restart container
         run: |
           ssh -i ec2-key.pem -o StrictHostKeyChecking=no $EC2_USER@$HOST << EOF
             cd ~/app
-            git fetch origin
-            git checkout ${GITHUB_REF##*/}
-            git pull origin ${GITHUB_REF##*/}
-          EOF
-
-      - name: Upload application.yml
-        run: |
-          ssh -i ec2-key.pem -o StrictHostKeyChecking=no $EC2_USER@$HOST << EOF
-            mkdir -p ~/app/src/main/resources
-            echo "$YML_CONTENT" | base64 -d > ~/app/src/main/resources/application.yml
-          EOF
-
-      - name: Rebuild and restart container
-        run: |
-          ssh -i ec2-key.pem -o StrictHostKeyChecking=no $EC2_USER@$HOST << EOF
-            cd ~/app
+            base64 -d application.yml.b64 > src/main/resources/application.yml
             docker compose -f $DOCKER_YML down
             docker compose -f $DOCKER_YML up --build -d
           EOF

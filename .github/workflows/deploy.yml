@@ -1,0 +1,45 @@
+name: Deploy to EC2 (main / develop)
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Decode PEM key
+      run: |
+        echo "${{ secrets.EC2_KEY }}" | base64 -d > ec2_key.pem
+        chmod 600 ec2_key.pem
+
+    - name: Deploy to EC2 depending on branch
+      run: |
+        BRANCH="${{ github.ref_name }}"
+
+        if [ "$BRANCH" = "main" ]; then
+          HOST="${{ secrets.EC2_MAIN_HOST }}"
+          COMPOSE="docker-compose.yml"
+        elif [ "$BRANCH" = "develop" ]; then
+          HOST="${{ secrets.EC2_DEV_HOST }}"
+          COMPOSE="docker-compose.yml"
+        else
+          echo "Unsupported branch: $BRANCH"
+          exit 1
+        fi
+
+        ssh -o StrictHostKeyChecking=no -i ec2_key.pem ubuntu@$HOST << EOF
+          cd ~/app
+          git fetch origin
+          git checkout $BRANCH
+          git pull origin $BRANCH
+          docker-compose -f $COMPOSE down
+          docker-compose -f $COMPOSE build
+          docker-compose -f $COMPOSE up -d
+        EOF

@@ -2,9 +2,7 @@ name: Deploy to EC2
 
 on:
   push:
-    branches:
-      - main
-      - develop
+    branches: [ main, develop ]
 
 jobs:
   deploy:
@@ -19,14 +17,8 @@ jobs:
       APPLICATION_YML_DEV: ${{ secrets.APPLICATION_YML_DEV }}
 
     steps:
-      - name: Checkout source code
+      - name: Checkout source
         uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: 17
-          distribution: temurin
 
       - name: Set deployment variables
         id: vars
@@ -35,7 +27,7 @@ jobs:
             echo "HOST=${EC2_MAIN_HOST}" >> "$GITHUB_ENV"
             echo "DOCKER_YML=docker-compose.main.yml" >> "$GITHUB_ENV"
             echo "${APPLICATION_YML_PROD}" > yml.txt
-          elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+          else
             echo "HOST=${EC2_DEV_HOST}" >> "$GITHUB_ENV"
             echo "DOCKER_YML=docker-compose.develop.yml" >> "$GITHUB_ENV"
             echo "${APPLICATION_YML_DEV}" > yml.txt
@@ -46,22 +38,19 @@ jobs:
           echo "$EC2_KEY" | base64 -d > ec2-key.pem
           chmod 600 ec2-key.pem
 
-      - name: Grant permission to Gradle wrapper
-        run: chmod +x ./gradlew
-
-      - name: Build Spring Boot JAR
-        run: ./gradlew build --no-daemon
-
-      - name: Sync files to EC2
+      - name: Send code and application.yml.b64 to EC2
         run: |
-          rsync -av -e "ssh -i ec2-key.pem -o StrictHostKeyChecking=no" --exclude='.git' --delete ./ $EC2_USER@$HOST:/home/ubuntu/app/
+          rsync -av --exclude='.git' -e "ssh -i ec2-key.pem -o StrictHostKeyChecking=no" ./ $EC2_USER@$HOST:/home/ubuntu/app/
           scp -i ec2-key.pem -o StrictHostKeyChecking=no yml.txt $EC2_USER@$HOST:/home/ubuntu/app/application.yml.b64
 
-      - name: Setup application.yml and restart container
+      - name: Build and restart container on EC2
         run: |
-          ssh -i ec2-key.pem -o StrictHostKeyChecking=no $EC2_USER@$HOST << EOF
-            mkdir -p /home/ubuntu/app/src/main/resources
-            base64 -d /home/ubuntu/app/application.yml.b64 > /home/ubuntu/app/src/main/resources/application.yml
-            docker-compose -f /home/ubuntu/app/\$DOCKER_YML down
-            docker-compose -f /home/ubuntu/app/\$DOCKER_YML up --build -d
+          ssh -i ec2-key.pem -o StrictHostKeyChecking=no $EC2_USER@$HOST << 'EOF'
+            set -e
+            cd /home/ubuntu/app
+            mkdir -p src/main/resources
+            base64 -d application.yml.b64 > src/main/resources/application.yml
+            ./gradlew build --no-daemon
+            docker-compose -f $DOCKER_YML down
+            docker-compose -f $DOCKER_YML up --build -d
           EOF

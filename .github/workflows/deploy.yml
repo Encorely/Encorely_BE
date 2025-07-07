@@ -27,7 +27,7 @@ jobs:
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "HOST=${EC2_MAIN_HOST}" >> "$GITHUB_ENV"
-            echo "DOCKER_YML=docker-compose.main.yml" >> "$GITHUB_ENV"
+            echo "DOCKER_YML=docker-compose.prod.yml" >> "$GITHUB_ENV"
             echo "${APPLICATION_YML_PROD}" > yml.txt
           elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
             echo "HOST=${EC2_DEV_HOST}" >> "$GITHUB_ENV"

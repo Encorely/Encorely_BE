@@ -42,7 +42,7 @@ jobs:
 
       - name: Copy code and application.yml to EC2
         run: |
-          scp -i ec2-key.pem -o StrictHostKeyChecking=no -r . $EC2_USER@$HOST:~/app-tmp
+          scp -i ec2-key.pem -o StrictHostKeyChecking=no -r $(ls -A | grep -v '^.git$') $EC2_USER@$HOST:~/app-tmp
           scp -i ec2-key.pem -o StrictHostKeyChecking=no yml.txt $EC2_USER@$HOST:~/app/application.yml.b64
 
       - name: Setup application.yml and restart container

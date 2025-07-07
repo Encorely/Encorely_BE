@@ -1,4 +1,6 @@
-name: Deploy to EC2 (main / develop)
+# .github/workflows/deploy.yml
+
+name: Deploy to EC2
 
 on:
   push:
@@ -10,36 +12,51 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    env:
+      EC2_USER: ubuntu
+      EC2_KEY: ${{ secrets.EC2_KEY }}
+      EC2_MAIN_HOST: ${{ secrets.EC2_MAIN_HOST }}
+      EC2_DEV_HOST: ${{ secrets.EC2_DEV_HOST }}
+      APPLICATION_YML_PROD: ${{ secrets.APPLICATION_YML_PROD }}
+      APPLICATION_YML_DEV: ${{ secrets.APPLICATION_YML_DEV }}
+
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Decode PEM key
-      run: |
-        echo "${{ secrets.EC2_KEY }}" | base64 -d > ec2_key.pem
-        chmod 600 ec2_key.pem
+      - name: Set deployment variables
+        id: vars
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "HOST=$EC2_MAIN_HOST" >> $GITHUB_OUTPUT
+            echo "APPLICATION_YML=$APPLICATION_YML_PROD" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            echo "HOST=$EC2_DEV_HOST" >> $GITHUB_OUTPUT
+            echo "APPLICATION_YML=$APPLICATION_YML_DEV" >> $GITHUB_OUTPUT
+          fi
 
-    - name: Deploy to EC2 depending on branch
-      run: |
-        BRANCH="${{ github.ref_name }}"
+      - name: Create pem file
+        run: echo "$EC2_KEY" | base64 -d > ec2-key.pem && chmod 600 ec2-key.pem
 
-        if [ "$BRANCH" = "main" ]; then
-          HOST="${{ secrets.EC2_MAIN_HOST }}"
-          COMPOSE="docker-compose.prod.yml"
-        elif [ "$BRANCH" = "develop" ]; then
-          HOST="${{ secrets.EC2_DEV_HOST }}"
-          COMPOSE="docker-compose.dev.yml"
-        else
-          echo "Unsupported branch: $BRANCH"
-          exit 1
-        fi
+      - name: Copy code to EC2
+        run: |
+          ssh -i ec2-key.pem -o StrictHostKeyChecking=no $EC2_USER@${{ steps.vars.outputs.HOST }} << EOF
+            cd ~/app
+            git fetch origin
+            git checkout ${GITHUB_REF##*/}
+            git pull origin ${GITHUB_REF##*/}
+          EOF
 
-        ssh -o StrictHostKeyChecking=no -i ec2_key.pem ubuntu@$HOST << EOF
-          cd ~/app
-          git fetch origin
-          git checkout $BRANCH
-          git pull origin $BRANCH
-          docker-compose -f $COMPOSE down
-          docker-compose -f $COMPOSE build
-          docker-compose -f $COMPOSE up -d
-        EOF
+      - name: Upload application.yml
+        run: |
+          ssh -i ec2-key.pem -o StrictHostKeyChecking=no $EC2_USER@${{ steps.vars.outputs.HOST }} << EOF
+            echo "${{ steps.vars.outputs.APPLICATION_YML }}" | base64 -d > ~/app/src/main/resources/application.yml
+          EOF
+
+      - name: Rebuild and restart container
+        run: |
+          ssh -i ec2-key.pem -o StrictHostKeyChecking=no $EC2_USER@${{ steps.vars.outputs.HOST }} << EOF
+            cd ~/app
+            docker compose -f docker-compose.${GITHUB_REF##*/}.yml down
+            docker compose -f docker-compose.${GITHUB_REF##*/}.yml up --build -d
+          EOF

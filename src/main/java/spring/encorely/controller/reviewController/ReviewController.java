@@ -28,7 +28,7 @@ public class ReviewController {
         return ApiResponse.onSuccess(reviewService.createReview(Long.parseLong(userDetails.getUsername()), request));
     }
 
-    @DeleteMapping("/{imageId}")
+    @DeleteMapping("/images/{imageId}")
     @Operation(summary = "후기 등록/수정 중 특정 이미지 삭제 API")
     public ApiResponse<String> deleteReviewImage(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long imageId) {
         reviewImageService.deleteReviewImage(Long.parseLong(userDetails.getUsername()), imageId);

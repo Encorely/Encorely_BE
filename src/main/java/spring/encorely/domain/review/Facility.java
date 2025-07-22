@@ -43,7 +43,7 @@ public class Facility extends BaseEntity {
 
     private String longitude;
 
-    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ReviewImage> reviewImageList  = new ArrayList<>();
+    @OneToOne(mappedBy = "facility", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ReviewImage reviewImage;
 
 }

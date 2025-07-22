@@ -27,7 +27,6 @@ public class ReviewImage extends BaseEntity {
 
     // 시야/공연, 맛집, 편의시설
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private ReviewImageCategory category;
 
     // 시야 or 공연
@@ -39,11 +38,11 @@ public class ReviewImage extends BaseEntity {
     private Review review;
 
     // 맛집 사진일 때 FK
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     private Restaurant restaurant;
 
     // 편의시설 사진일 때 FK
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     private Facility facility;
 
     // 실제 등록된 후기의 이미지인지 표시

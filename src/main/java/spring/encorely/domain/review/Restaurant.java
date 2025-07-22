@@ -45,9 +45,9 @@ public class Restaurant extends BaseEntity {
     private RestaurantType restaurantType;
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Keyword> keywordList = new ArrayList<>();
+    private List<UserKeywords> keywordList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ReviewImage> reviewImageList  = new ArrayList<>();
+    @OneToOne(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ReviewImage reviewImage;
 
 }

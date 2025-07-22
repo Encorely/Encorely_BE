@@ -18,4 +18,14 @@ public class ReviewResponseDTO {
         LocalDateTime createdAt;
     }
 
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CreateReviewImage {
+        Long imageId;
+        String imageUrl;
+        LocalDateTime createdAt;
+    }
+
 }

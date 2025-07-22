@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import spring.encorely.apiPayload.ApiResponse;
 import spring.encorely.dto.reviewDto.ReviewRequestDTO;
 import spring.encorely.dto.reviewDto.ReviewResponseDTO;
+import spring.encorely.service.reviewService.ReviewImageService;
 import spring.encorely.service.reviewService.ReviewService;
 
 @RestController
@@ -18,11 +19,20 @@ import spring.encorely.service.reviewService.ReviewService;
 public class ReviewController {
 
     private final ReviewService reviewService;
+    private final ReviewImageService reviewImageService;
 
     @PostMapping
-    @Operation(summary = "리뷰 등록 API")
+    @Operation(summary = "후기 등록 API")
     public ApiResponse<ReviewResponseDTO.CreateReview> createReview(@AuthenticationPrincipal UserDetails userDetails,
                                                                     @Valid @RequestBody ReviewRequestDTO.CreateReview request) {
         return ApiResponse.onSuccess(reviewService.createReview(Long.parseLong(userDetails.getUsername()), request));
     }
+
+    @DeleteMapping("/{imageId}")
+    @Operation(summary = "후기 등록/수정 중 특정 이미지 삭제 API")
+    public ApiResponse<String> deleteReviewImage(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long imageId) {
+        reviewImageService.deleteReviewImage(Long.parseLong(userDetails.getUsername()), imageId);
+        return ApiResponse.onSuccess("이미지가 삭제되었습니다.");
+    }
+
 }

@@ -74,7 +74,7 @@ public class Review extends BaseEntity {
     private String seatDetail;
 
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Keyword> keywordList = new ArrayList<>();
+    private List<UserKeywords> keywordList = new ArrayList<>();
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)

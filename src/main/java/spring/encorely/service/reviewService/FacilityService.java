@@ -31,7 +31,7 @@ public class FacilityService {
                     .build();
 
             facilityRepository.save(facility);
-            reviewImageService.saveFacilityImages(facility, info.getImageUrls());
+            reviewImageService.saveFacilityImage(facility, info.getImageUrl());
         }
     }
 

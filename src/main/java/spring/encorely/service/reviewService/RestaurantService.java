@@ -33,7 +33,7 @@ public class RestaurantService {
 
             restaurantRepository.save(restaurant);
             userKeywordsService.saveRestaurantKeywords(restaurant, info.getRestaurantProsList());
-            reviewImageService.saveRestaurantImages(restaurant, info.getImageUrls());
+            reviewImageService.saveRestaurantImage(restaurant, info.getImageUrl());
         }
     }
 

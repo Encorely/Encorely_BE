@@ -96,7 +96,7 @@ public class ReviewRequestDTO {
         @Schema(description = "맛집 자세한 후기")
         String restaurantDetail;
         @Schema(description = "이미지 등록 후 반환된 URL", example = "https://s3...")
-        List<String> imageUrls;
+        String imageUrl;
         @Schema(description = "맛집 키워드 아이디 리스트", example = "1, 2, 3")
         List<Long> restaurantProsList;
 
@@ -121,7 +121,7 @@ public class ReviewRequestDTO {
         @Schema(description = "편의시설 이용 꿀팁")
         String tips;
         @Schema(description = "이미지 등록 후 반환된 URL", example = "https://s3...")
-        List<String> imageUrls;
+        String imageUrl;
 
     }
 

@@ -1,24 +1,15 @@
 spring:
-  jackson:
-    time-zone: Asia/Seoul
   datasource:
-    url: ${AWS_DB_ADDRESS}
-    username: admin
-    password: ${AWS_DB_PASSWORD}
+    url: jdbc:mysql://localhost:3306/Encorely?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: root
+    password: a12752411!
     driver-class-name: com.mysql.cj.jdbc.Driver
-  sql:
-    init:
-      mode: never
   jpa:
+    hibernate:
+      ddl-auto: update  # or create, update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
-        show_sql: true
-        format_sql: true
-        use_sql_comments: true
-        hbm2ddl:
-          auto: update
-        default_batch_fetch_size: 1000
 
   cloud:
     aws:
@@ -36,7 +27,7 @@ spring:
     port: 6379
 
   jwt:
-    secret-key: ${SECRET_KEY}
+    secret-key: my-super-very-secret-jwt-key-local-999 #${SECRET_KEY}
 
   security:
     oauth2:

@@ -18,13 +18,23 @@ public enum ErrorStatus implements BaseErrorCode {
     // 유저 관련 에러
     USER_NOT_FOUND(HttpStatus.BAD_REQUEST, "USER4001", "존재하지 않는 사용자입니다."),
     INACTIVE_USER(HttpStatus.UNAUTHORIZED, "USER4002", "비활성화 된 사용자입니다."),
+    UNAUTHORIZED(HttpStatus.BAD_REQUEST, "USER4003", "권한이 없는 사용자입니다."),
 
-    //인증 관련 에러
+    // 인증 관련 에러
     AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "AUTH4001", "이메일 또는 비밀번호가 일치하지 않습니다."),
     DYNAMIC_KEY_NOT_FOUND(HttpStatus.BAD_REQUEST, "AUTH4002", "사용자에 대한 동적 키가 존재하지 않습니다."),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4011", "유효하지 않은 토큰입니다."),
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH4012", "토큰이 만료되었습니다."),
-    LOGOUT_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4023", "로그아웃된 토큰입니다.");
+    LOGOUT_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4023", "로그아웃된 토큰입니다."),
+
+    // 후기 관련 에러
+    REVIEW_NOT_FOUND(HttpStatus.BAD_REQUEST, "REVIEW4001", "존재하지 않는 후기입니다."),
+    REVIEW_IMAGE_NOT_FOUND(HttpStatus.BAD_REQUEST, "REVIEW4002", "존재하지 않는 후기 사진입니다."),
+    KEYWORDS_NOT_FOUND(HttpStatus.BAD_REQUEST, "REVIEW4003", "존재하지 않는 키워드입니다."),
+
+    // 공연장 관련 에러
+    HALL_NOT_FOUND(HttpStatus.BAD_REQUEST, "HALL4001", "존재하지 않는 공연장입니다.");
+
 
     private final HttpStatus httpStatus;
     private final String code;

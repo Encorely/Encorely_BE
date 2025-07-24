@@ -7,9 +7,12 @@ import org.hibernate.annotations.DynamicUpdate;
 import spring.encorely.domain.common.BaseEntity;
 import spring.encorely.domain.enums.Role;
 import spring.encorely.domain.enums.Status;
+import spring.encorely.domain.review.Review;
 import spring.encorely.listener.UserEntityListener;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @EntityListeners(UserEntityListener.class)
 @Entity
@@ -64,5 +67,8 @@ public class User extends BaseEntity {
 
     @Column
     private String link;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviewList = new ArrayList<>();
 
 }

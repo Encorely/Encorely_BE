@@ -84,11 +84,10 @@ public class ReviewDetail {
         @JsonIgnore
         private Set<User> likedUsers = new HashSet<>();
 
-        // ⭐ 댓글 목록을 위한 OneToMany 관계 수정 ⭐
         @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
         @JsonManagedReference("review-comments")
         @Builder.Default
-        private List<Comment> comments = new ArrayList<>(); // ⭐ commentDto -> Comment로 변경 ⭐
+        private List<Comment> comments = new ArrayList<>();
 
 
         public boolean isLikedBy(User user) {

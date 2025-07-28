@@ -4,24 +4,19 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import spring.encorely.domain.comment.Comment;
 import spring.encorely.domain.user.User;
+import spring.encorely.domain.comment.Comment;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "review")
 @Getter
 @Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class ReviewDetail {
@@ -30,79 +25,89 @@ public class ReviewDetail {
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private Long id;
 
+        @Column(nullable = false)
         private Long hallId;
 
         @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "user_id")
-        @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "reviews", "comments"})
+        @JoinColumn(name = "user_id", nullable = false)
         private User user;
 
-        @Column(length = 255)
+        @Column(nullable = false)
         private String showName;
 
-        @Column(length = 255)
+        @Column(nullable = false)
         private String artistName;
 
-        @Column(length = 30)
+        @Column
         private String seatArea;
-        @Column(length = 30)
+
+        @Column
         private String seatRow;
-        @Column(length = 30)
+
+        @Column
         private String seatNumber;
 
+        @Column(nullable = false)
         private Float rating;
 
         @CreationTimestamp
+        @Column(nullable = false)
         private LocalDateTime createdAt;
 
         @UpdateTimestamp
         private LocalDateTime updatedAt;
 
-        @Column(length = 50)
-        private String comment; // 후기 자체에 대한 간단한 코멘트 필드
+        @Column(columnDefinition = "TEXT")
+        private String comment;
 
         @Column(columnDefinition = "TEXT")
-        private String detail; // 후기의 상세 내용 필드
+        private String detail;
 
-        @Column(columnDefinition = "TEXT")
+        @Column
         private String seatDetail;
 
+        @Column(nullable = false)
         private LocalDate showDate;
+
+        @Column
         private Integer round;
-        private Integer viewCount;
-        private Integer likeCount = 0;  // 좋아요 수 기본값 0
 
-        private Integer commentCount; // 댓글 수 필드
-        private Integer scrapCount; // 스크랩 수 필드
+        @Column(columnDefinition = "INTEGER DEFAULT 0")
+        private Integer viewCount = 0;
 
-        @ManyToMany
-        @JoinTable(
-                name = "review_likes",
-                joinColumns = @JoinColumn(name = "review_id"),
-                inverseJoinColumns = @JoinColumn(name = "user_id")
-        )
-        @JsonIgnore
-        private Set<User> likedUsers = new HashSet<>();
+        @Column(columnDefinition = "INTEGER DEFAULT 0")
+        private Integer likeCount = 0;
+
+        @Column(columnDefinition = "INTEGER DEFAULT 0")
+        private Integer commentCount = 0;
+
+        @Column(columnDefinition = "INTEGER DEFAULT 0")
+        private Integer scrapCount = 0;
+
+        @OneToMany(mappedBy = "reviewDetail", cascade = CascadeType.ALL, orphanRemoval = true)
+        @Builder.Default
+        private List<ReviewImage> images = new ArrayList<>();
 
         @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
-        @JsonManagedReference("review-comments")
         @Builder.Default
         private List<Comment> comments = new ArrayList<>();
 
-
-        public boolean isLikedBy(User user) {
-                return likedUsers.contains(user);
+        public void addImage(ReviewImage image) {
+                this.images.add(image);
+                image.setReviewDetail(this);
         }
 
-        public void like(User user) {
-                if (likedUsers.add(user)) {
-                        likeCount++;
-                }
+        public void removeImage(ReviewImage image) {
+                this.images.remove(image);
+                image.setReviewDetail(null);
         }
 
-        public void unlike(User user) {
-                if (likedUsers.remove(user)) {
-                        likeCount--;
-                }
+        public void addUser(User user) {
+                this.user = user;
+        }
+
+        public void addComment(Comment comment) {
+                this.comments.add(comment);
+                comment.setReview(this);
         }
 }

@@ -5,10 +5,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import spring.encorely.domain.reviewDetail.ReviewDetail;
+import spring.encorely.domain.reviewDetail.ReviewImage;
 import spring.encorely.dto.commentDto.CommentResponseDto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,6 +43,8 @@ public class ReviewDetailResponseDto {
     private Integer scrapCount;
     private boolean isLikedByCurrentUser;
 
+    private List<String> imageUrls;
+
     private List<CommentResponseDto> comments;
 
     public ReviewDetailResponseDto(ReviewDetail reviewDetail) {
@@ -66,6 +70,14 @@ public class ReviewDetailResponseDto {
         this.commentCount = reviewDetail.getCommentCount();
         this.scrapCount = reviewDetail.getScrapCount();
         this.isLikedByCurrentUser = false;
+
+        if (reviewDetail.getImages() != null) {
+            this.imageUrls = reviewDetail.getImages().stream()
+                    .map(ReviewImage::getImageUrl)
+                    .collect(Collectors.toList());
+        } else {
+            this.imageUrls = new ArrayList<>();
+        }
 
         if (reviewDetail.getComments() != null) {
             this.comments = reviewDetail.getComments().stream()

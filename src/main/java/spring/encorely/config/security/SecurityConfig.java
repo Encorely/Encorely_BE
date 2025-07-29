@@ -13,6 +13,8 @@ import spring.encorely.config.jwt.JwtRequestFilter;
 
 import java.util.List;
 
+import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
+
 @Slf4j
 @EnableWebSecurity
 @Configuration

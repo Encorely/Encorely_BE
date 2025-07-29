@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import spring.encorely.dto.reviewDetailDto.ReviewDetailRequestDto;
-import spring.encorely.dto.reviewDetailDto.ReviewDetailResponseDto;
-import spring.encorely.service.reviewDetailService.ReviewDetailService;
+import spring.encorely.dto.reviewDetailDto.ReviewRequestDto;
+import spring.encorely.dto.reviewDetailDto.ReviewResponseDto;
+import spring.encorely.service.reviewDetailService.ReviewService;
 
 import jakarta.validation.Valid;
 
@@ -15,28 +15,28 @@ import jakarta.validation.Valid;
 @RequiredArgsConstructor
 public class ReviewDetailController {
 
-    private final ReviewDetailService reviewDetailService;
+    private final ReviewService reviewDetailService;
 
     // 특정 리뷰 상세 조회
     @GetMapping("/{reviewId}")
-    public ResponseEntity<ReviewDetailResponseDto> getReviewDetail(@PathVariable Long reviewId) {
-        ReviewDetailResponseDto reviewDto = reviewDetailService.getReviewDetailById(reviewId);
+    public ResponseEntity<ReviewResponseDto> getReviewDetail(@PathVariable Long reviewId) {
+        ReviewResponseDto reviewDto = reviewDetailService.getReviewDetailById(reviewId);
         return ResponseEntity.ok(reviewDto);
     }
 
     // 리뷰 수정
     @PutMapping("/{reviewId}")
-    public ResponseEntity<ReviewDetailResponseDto> updateReview(
+    public ResponseEntity<ReviewResponseDto> updateReview(
             @PathVariable Long reviewId,
-            @Valid @RequestBody ReviewDetailRequestDto requestDto // 수정할 데이터 (새로운 내용)
+            @Valid @RequestBody ReviewRequestDto requestDto
     ) {
-        ReviewDetailResponseDto updatedReview = reviewDetailService.updateReview(reviewId, requestDto.getUserId(), requestDto);
+        ReviewResponseDto updatedReview = reviewDetailService.updateReview(reviewId, requestDto.getUserId(), requestDto);
         return ResponseEntity.ok(updatedReview);
     }
 
     @PostMapping
-    public ResponseEntity<ReviewDetailResponseDto> createReview(@Valid @RequestBody ReviewDetailRequestDto requestDto) {
-        ReviewDetailResponseDto newReview = reviewDetailService.createReview(requestDto);
+    public ResponseEntity<ReviewResponseDto> createReview(@Valid @RequestBody ReviewRequestDto requestDto) {
+        ReviewResponseDto newReview = reviewDetailService.createReview(requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(newReview);
     }
 

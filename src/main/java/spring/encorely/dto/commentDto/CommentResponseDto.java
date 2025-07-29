@@ -25,6 +25,7 @@ public class CommentResponseDto {
     private LocalDateTime updatedAt;
     private Long reviewId;
     private Long userId;
+    private String userNickname;
     private String timeAgo;
 
     @JsonBackReference("parent-children")
@@ -40,17 +41,26 @@ public class CommentResponseDto {
         this.updatedAt = comment.getUpdatedAt();
         this.reviewId = comment.getReview() != null ? comment.getReview().getId() : null;
         this.userId = comment.getUser() != null ? comment.getUser().getId() : null;
+        this.userNickname = comment.getUser() != null ? comment.getUser().getNickname() : null;
         this.timeAgo = calculateTimeAgo(comment.getCreatedAt());
 
         if (comment.getChildren() != null && !comment.getChildren().isEmpty()) {
             this.children = comment.getChildren().stream()
-                    .map(CommentResponseDto::new)
+                    .map(childComment -> {
+                        CommentResponseDto childDto = new CommentResponseDto(childComment);
+                        childDto.setParent(null);
+                        return childDto;
+                    })
                     .collect(Collectors.toList());
         } else {
             this.children = null;
         }
 
         this.parent = null;
+    }
+
+    public void setParent(CommentResponseDto parent) {
+        this.parent = parent;
     }
 
     private String calculateTimeAgo(LocalDateTime createdAt) {
@@ -65,11 +75,11 @@ public class CommentResponseDto {
             return "방금 전";
         } else if (diffSeconds < 3600) { // 1시간 미만
             return ChronoUnit.MINUTES.between(createdAt, now) + "분 전";
-        } else if (diffSeconds < 86400) { // 24시간 미만 (1일 미만)
+        } else if (diffSeconds < 86400) { // 24시간 미만
             return ChronoUnit.HOURS.between(createdAt, now) + "시간 전";
-        } else if (diffSeconds < 2592000) { // 30일 미만 (대략 1개월)
+        } else if (diffSeconds < 2592000) { // 30일 미만
             return ChronoUnit.DAYS.between(createdAt, now) + "일 전";
-        } else if (diffSeconds < 31536000) { // 365일 미만 (대략 1년)
+        } else if (diffSeconds < 31536000) { // 365일 미만
             return ChronoUnit.MONTHS.between(createdAt, now) + "개월 전";
         } else {
             return ChronoUnit.YEARS.between(createdAt, now) + "년 전";

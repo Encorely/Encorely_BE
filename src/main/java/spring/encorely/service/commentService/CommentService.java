@@ -4,13 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import spring.encorely.domain.comment.Comment;
-import spring.encorely.domain.reviewDetail.ReviewDetail;
+import spring.encorely.domain.reviewDetail.Review;
 import spring.encorely.domain.user.User;
 import spring.encorely.dto.commentDto.CommentRequestDto;
 import spring.encorely.dto.commentDto.CommentResponseDto;
 import spring.encorely.exception.NotFoundException;
 import spring.encorely.repository.comment.CommentRepository;
-import spring.encorely.repository.reviewDetail.ReviewDetailRepository;
+import spring.encorely.repository.reviewDetail.ReviewRepository;
 import spring.encorely.repository.userRepository.UserRepository;
 
 import java.util.List;
@@ -21,15 +21,15 @@ import java.util.stream.Collectors;
 public class CommentService {
 
     private final CommentRepository commentRepository;
-    private final ReviewDetailRepository reviewDetailRepository;
+    private final ReviewRepository reviewDetailRepository;
     private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public List<CommentResponseDto> getCommentsByReviewId(Long reviewId) {
-        ReviewDetail review = reviewDetailRepository.findById(reviewId)
+        Review review = reviewDetailRepository.findById(reviewId)
                 .orElseThrow(() -> new NotFoundException("Review not found with id: " + reviewId));
 
-        List<Comment> topLevelComments = commentRepository.findByReviewAndParentIsNull(review);
+        List<Comment> topLevelComments = commentRepository.findByReviewDetailAndParentIsNull(review); // ⭐ 수정
 
         return topLevelComments.stream()
                 .map(CommentResponseDto::new)
@@ -38,7 +38,7 @@ public class CommentService {
 
     @Transactional
     public CommentResponseDto createComment(Long reviewId, CommentRequestDto requestDto) {
-        ReviewDetail review = reviewDetailRepository.findById(reviewId)
+        Review review = reviewDetailRepository.findById(reviewId)
                 .orElseThrow(() -> new NotFoundException("Review not found with id: " + reviewId));
         User user = userRepository.findById(requestDto.getUserId())
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + requestDto.getUserId()));
@@ -59,7 +59,7 @@ public class CommentService {
 
     @Transactional
     public CommentResponseDto createReply(Long reviewId, Long parentCommentId, CommentRequestDto requestDto) {
-        ReviewDetail review = reviewDetailRepository.findById(reviewId)
+        Review review = reviewDetailRepository.findById(reviewId)
                 .orElseThrow(() -> new NotFoundException("Review not found with id: " + reviewId));
         Comment parentComment = commentRepository.findById(parentCommentId)
                 .orElseThrow(() -> new NotFoundException("Parent comment not found with id: " + parentCommentId));
@@ -100,7 +100,7 @@ public class CommentService {
             throw new IllegalArgumentException("You are not authorized to delete this comment.");
         }
 
-        ReviewDetail review = comment.getReview();
+        Review review = comment.getReview();
         commentRepository.delete(comment);
 
         review.setCommentCount(review.getCommentCount() - 1);

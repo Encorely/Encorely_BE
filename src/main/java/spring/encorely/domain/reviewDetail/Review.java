@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import spring.encorely.domain.comment.Comment;
 import spring.encorely.domain.hall.Hall;
+import spring.encorely.domain.like.Like;
 import spring.encorely.domain.user.User;
 
 import java.time.LocalDateTime;
@@ -85,6 +86,10 @@ public class Review {
 
         @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
         @Builder.Default
+        private Set<Like> likes = new HashSet<>();
+
+        @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+        @Builder.Default
         private Set<UserKeyword> userKeywords = new HashSet<>();
 
         // 편의 메서드
@@ -116,6 +121,18 @@ public class Review {
                 this.facilityDetail = facilityDetail;
                 if (facilityDetail != null) {
                         facilityDetail.setReview(this);
+                }
+        }
+
+        // 좋아요 수 증가
+        public void incrementLikeCount() {
+                this.likeCount++;
+        }
+
+        // 좋아요 수 감소
+        public void decrementLikeCount() {
+                if (this.likeCount > 0) { // 음수 방지
+                        this.likeCount--;
                 }
         }
 }

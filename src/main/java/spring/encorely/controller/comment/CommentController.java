@@ -1,57 +1,75 @@
 package spring.encorely.controller.comment;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import spring.encorely.dto.commentDto.CommentRequestDto;
-import spring.encorely.dto.commentDto.CommentResponseDto;
+import spring.encorely.domain.comment.Comment;
 import spring.encorely.service.commentService.CommentService;
 
-import jakarta.validation.Valid;
-
 import java.util.List;
-
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api/reviews/{reviewId}/comments")
+@RequestMapping("/api/reviews")
 @RequiredArgsConstructor
 public class CommentController {
 
     private final CommentService commentService;
 
-    @GetMapping
-    public ResponseEntity<List<CommentResponseDto>> getComments(@PathVariable Long reviewId) {
-        List<CommentResponseDto> comments = commentService.getCommentsByReviewId(reviewId);
-        return ResponseEntity.ok(comments);
+    // 댓글 작성 요청 DTO (필요시 별도 파일로 분리)
+    @Data // Lombok
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CommentRequest {
+        private String content;
     }
 
-    @PostMapping
-    public ResponseEntity<CommentResponseDto> createComment(
-                                                             @PathVariable Long reviewId,
-                                                             @Valid @RequestBody CommentRequestDto requestDto
+    // 댓글 작성 엔드포인트
+    // POST /api/reviews/{reviewId}/comments
+    @PostMapping("/{reviewId}/comments")
+    public ResponseEntity<Comment> createComment(
+            @PathVariable Long reviewId,
+            @RequestBody CommentRequest request,
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        CommentResponseDto newComment = commentService.createComment(reviewId, requestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newComment); // ApiResponse 제거
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        Long userId = getUserIdFromUserDetails(userDetails); // 임시 구현
+
+        try {
+            Comment newComment = commentService.createComment(userId, reviewId, request.getContent());
+            return ResponseEntity.status(HttpStatus.CREATED).body(newComment);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build(); // 리뷰 또는 사용자 없음
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
-    @PostMapping("/{parentCommentId}/replies")
-    public ResponseEntity<CommentResponseDto> createReply(
-                                                           @PathVariable Long reviewId,
-                                                           @PathVariable Long parentCommentId,
-                                                           @Valid @RequestBody CommentRequestDto requestDto
+    // 특정 리뷰의 댓글 목록 조회 엔드포인트
+    // GET /api/reviews/{reviewId}/comments
+    @GetMapping("/{reviewId}/comments")
+    public ResponseEntity<List<Comment>> getComments(
+            @PathVariable Long reviewId
     ) {
-        CommentResponseDto newReply = commentService.createReply(reviewId, parentCommentId, requestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newReply);
+        try {
+            List<Comment> comments = commentService.getCommentsForReview(reviewId);
+            return ResponseEntity.ok(comments);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build(); // 리뷰 없음
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
-    @DeleteMapping("/{commentId}")
-    public ResponseEntity<Void> deleteComment(
-                                               @PathVariable Long reviewId,
-                                               @PathVariable Long commentId,
-                                               @RequestParam Long userId
-    ) {
-        commentService.deleteComment(reviewId, commentId, userId);
-        return ResponseEntity.noContent().build();
+    private Long getUserIdFromUserDetails(UserDetails userDetails) {
+        return 1L; // 임시 userId
     }
 }

@@ -97,9 +97,9 @@ public class Review {
         @Column(name = "restaurant_address")
         private String restaurantAddress;
         @Column(name = "restaurant_latitude")
-        private Double restaurantLatitude;
+        private Float restaurantLatitude;
         @Column(name = "restaurant_longitude")
-        private Double restaurantLongitude;
+        private Float restaurantLongitude;
         @Column(name = "restaurant_brand_name")
         private String restaurantBrandName;
 

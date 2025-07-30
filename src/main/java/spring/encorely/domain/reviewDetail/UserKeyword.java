@@ -2,9 +2,7 @@ package spring.encorely.domain.reviewDetail;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "user_keywords")
@@ -23,14 +21,15 @@ public class UserKeyword {
     @JoinColumn(name = "review_id", nullable = false)
     private Review review;
 
-    @Column(name = "keyword_text", nullable = false)
-    private String keywordText;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "keyword_id", nullable = false)
+    private UserKeyword keyword;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Column(nullable = false)
+    private String content;
 
-    public void setReview(Review review) {
-        this.review = review;
-    }
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private KeywordCategory category;
+
 }

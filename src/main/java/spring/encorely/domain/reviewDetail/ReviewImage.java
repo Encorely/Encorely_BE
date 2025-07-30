@@ -1,37 +1,32 @@
 package spring.encorely.domain.reviewDetail;
 
-import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.LocalDateTime;
+import jakarta.persistence.*;
+import spring.encorely.domain.common.BaseEntity;
 
 @Entity
-@Table(name = "review_images")
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class ReviewImage {
+@Table(name = "review_images")
+public class ReviewImage extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "review_id", nullable = false) // ⭐ review_id로 변경
-    private Review review; // ⭐ Review 엔티티 참조
-
-    @Column(name = "image_url", nullable = false)
     private String imageUrl;
 
-    @CreationTimestamp
-    @Column(name = "uploaded_at", nullable = false, updatable = false)
-    private LocalDateTime uploadedAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "review_id", nullable = false)
+    private Review review;
 
-    // 편의 메서드 이름 변경
-    public void setReview(Review review) { // ⭐ 메서드 이름 변경
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ImageCategory category;
+
+    public void setReview(Review review) {
         this.review = review;
     }
 }

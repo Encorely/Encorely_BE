@@ -1,19 +1,23 @@
 package spring.encorely.service.reviewDetailService;
 
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import spring.encorely.domain.hall.Hall;
+import spring.encorely.domain.reviewDetail.UserKeyword;
+import spring.encorely.domain.reviewDetail.KeywordCategory;
 import spring.encorely.domain.reviewDetail.Review;
 import spring.encorely.domain.reviewDetail.ReviewCategory;
 import spring.encorely.domain.reviewDetail.ReviewImage;
+import spring.encorely.domain.user.User;
 import spring.encorely.domain.reviewDetail.UserKeyword;
 
-import spring.encorely.domain.user.User;
 import spring.encorely.dto.hallDto.HallResponseDto;
 import spring.encorely.dto.reviewDetailDto.ReviewRequestDto;
 import spring.encorely.dto.reviewDetailDto.ReviewResponseDto;
 import spring.encorely.exception.NotFoundException;
+import spring.encorely.repository.reviewDetail.KeywordRepository;
 import spring.encorely.repository.reviewDetail.ReviewRepository;
 import spring.encorely.repository.userRepository.UserRepository;
 import spring.encorely.service.hallService.HallService;
@@ -25,12 +29,13 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional(readOnly = true) // 이 클래스 전체에 readOnly 트랜잭션 적용
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
     private final HallService hallService;
+    private final KeywordRepository keywordRepository;
 
     @Transactional
     public ReviewResponseDto createReview(ReviewRequestDto requestDto) {
@@ -50,7 +55,6 @@ public class ReviewService {
                 .detail(requestDto.getDetail())
                 .visitDate(requestDto.getVisitDate())
 
-                // Performance Detail
                 .performanceHall(performanceHall)
                 .performanceShowName(requestDto.getPerformanceShowName())
                 .performanceArtistName(requestDto.getPerformanceArtistName())
@@ -61,7 +65,6 @@ public class ReviewService {
                 .performanceShowDate(requestDto.getPerformanceShowDate())
                 .performanceRound(requestDto.getPerformanceRound())
 
-                // Restaurant Detail
                 .restaurantPlaceName(requestDto.getRestaurantPlaceName())
                 .restaurantCategory(requestDto.getRestaurantCategory())
                 .restaurantAddress(requestDto.getRestaurantAddress())
@@ -69,7 +72,6 @@ public class ReviewService {
                 .restaurantLongitude(requestDto.getRestaurantLongitude())
                 .restaurantBrandName(requestDto.getRestaurantBrandName())
 
-                // Facility Detail
                 .facilityType(requestDto.getFacilityType())
                 .facilityTips(requestDto.getFacilityTips())
                 .facilityCategory(requestDto.getFacilityCategory())
@@ -89,11 +91,8 @@ public class ReviewService {
             }
         }
 
-        if (requestDto.getKeywords() != null && !requestDto.getKeywords().isEmpty()) {
-            for (String keywordText : requestDto.getKeywords()) {
-                newReview.addUserKeyword(UserKeyword.builder().keywordText(keywordText).build());
-            }
-        }
+        addKeywordsToReview(newReview, requestDto.getPerformanceSeatKeywordIds(), KeywordCategory.PERFORMANCE_SEAT);
+        addKeywordsToReview(newReview, requestDto.getRestaurantKeywordIds(), KeywordCategory.RESTAURANT);
 
         Review savedReview = reviewRepository.save(newReview);
 
@@ -107,11 +106,18 @@ public class ReviewService {
     }
 
     @Transactional
-    public ReviewResponseDto getReviewDetailById(Long reviewId) {
+    public void incrementReviewViewCount(Long reviewId) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NotFoundException("Review not found with id: " + reviewId));
-
         review.setViewCount(review.getViewCount() + 1);
+    }
+
+    @Transactional(readOnly = true)
+    public ReviewResponseDto getReviewDetailById(Long reviewId) {
+        incrementReviewViewCount(reviewId);
+
+        Review review = reviewRepository.findByIdWithKeywords(reviewId)
+                .orElseThrow(() -> new NotFoundException("Review not found with id: " + reviewId));
 
         ReviewResponseDto responseDto = new ReviewResponseDto(review);
         if (review.getPerformanceHall() != null) {
@@ -121,6 +127,7 @@ public class ReviewService {
 
         return responseDto;
     }
+
 
     @Transactional
     public ReviewResponseDto updateReview(Long reviewId, Long userId, ReviewRequestDto requestDto) {
@@ -145,11 +152,9 @@ public class ReviewService {
         }
 
         review.getUserKeywords().clear();
-        if (requestDto.getKeywords() != null && !requestDto.getKeywords().isEmpty()) {
-            for (String keywordText : requestDto.getKeywords()) {
-                review.addUserKeyword(UserKeyword.builder().keywordText(keywordText).build());
-            }
-        }
+        addKeywordsToReview(review, requestDto.getPerformanceSeatKeywordIds(), KeywordCategory.PERFORMANCE_SEAT);
+        addKeywordsToReview(review, requestDto.getRestaurantKeywordIds(), KeywordCategory.RESTAURANT);
+
 
         Hall performanceHall = null;
         if (requestDto.getHallId() != null) {
@@ -202,5 +207,20 @@ public class ReviewService {
         }
 
         reviewRepository.delete(review);
+    }
+
+    private void addKeywordsToReview(Review review, List<Long> keywordIds, KeywordCategory expectedCategory) {
+        if (keywordIds != null && !keywordIds.isEmpty()) {
+            List<UserKeyword> foundKeywords = keywordRepository.findAllById(keywordIds);
+            for (UserKeyword keyword : foundKeywords) {
+                if (keyword.getCategory() == expectedCategory) {
+                    review.addUserKeyword(UserKeyword.builder().keyword(keyword).build());
+                } else {
+                    System.err.println("Warning: Keyword ID " + keyword.getId() + " (content: " + keyword.getContent() +
+                            ") has category " + keyword.getCategory() +
+                            " but was passed for " + expectedCategory + " category.");
+                }
+            }
+        }
     }
 }

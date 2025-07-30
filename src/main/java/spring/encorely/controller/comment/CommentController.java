@@ -22,7 +22,7 @@ public class CommentController {
 
     private final CommentService commentService;
 
-    // 댓글 작성 요청 DTO (필요시 별도 파일로 분리)
+    // 댓글 작성 요청
     @Data // Lombok
     @NoArgsConstructor
     @AllArgsConstructor

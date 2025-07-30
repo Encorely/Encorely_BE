@@ -4,7 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import spring.encorely.domain.hall.Hall;
-import spring.encorely.domain.reviewDetail.*;
+import spring.encorely.domain.reviewDetail.Review;
+import spring.encorely.domain.reviewDetail.ReviewCategory;
+import spring.encorely.domain.reviewDetail.ReviewImage;
+import spring.encorely.domain.reviewDetail.UserKeyword;
+
 import spring.encorely.domain.user.User;
 import spring.encorely.dto.hallDto.HallResponseDto;
 import spring.encorely.dto.reviewDetailDto.ReviewRequestDto;
@@ -33,6 +37,11 @@ public class ReviewService {
         User user = userRepository.findById(requestDto.getUserId())
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + requestDto.getUserId()));
 
+        Hall performanceHall = null;
+        if (requestDto.getHallId() != null) {
+            performanceHall = hallService.getHallEntityById(requestDto.getHallId());
+        }
+
         Review newReview = Review.builder()
                 .user(user)
                 .reviewCategoryType(requestDto.getReviewCategoryType())
@@ -40,56 +49,37 @@ public class ReviewService {
                 .comment(requestDto.getComment())
                 .detail(requestDto.getDetail())
                 .visitDate(requestDto.getVisitDate())
+
+                // Performance Detail
+                .performanceHall(performanceHall)
+                .performanceShowName(requestDto.getPerformanceShowName())
+                .performanceArtistName(requestDto.getPerformanceArtistName())
+                .performanceSeatArea(requestDto.getPerformanceSeatArea())
+                .performanceSeatRow(requestDto.getPerformanceSeatRow())
+                .performanceSeatNumber(requestDto.getPerformanceSeatNumber())
+                .performanceSeatDetail(requestDto.getPerformanceSeatDetail())
+                .performanceShowDate(requestDto.getPerformanceShowDate())
+                .performanceRound(requestDto.getPerformanceRound())
+
+                // Restaurant Detail
+                .restaurantPlaceName(requestDto.getRestaurantPlaceName())
+                .restaurantCategory(requestDto.getRestaurantCategory())
+                .restaurantAddress(requestDto.getRestaurantAddress())
+                .restaurantLatitude(requestDto.getRestaurantLatitude())
+                .restaurantLongitude(requestDto.getRestaurantLongitude())
+                .restaurantBrandName(requestDto.getRestaurantBrandName())
+
+                // Facility Detail
+                .facilityType(requestDto.getFacilityType())
+                .facilityTips(requestDto.getFacilityTips())
+                .facilityCategory(requestDto.getFacilityCategory())
+                .facilityAddress(requestDto.getFacilityAddress())
+                .facilityLatitude(requestDto.getFacilityLatitude())
+                .facilityLongitude(requestDto.getFacilityLongitude())
+                .facilityConvenienceRating(requestDto.getFacilityConvenienceRating())
+                .facilityCleanlinessRating(requestDto.getFacilityCleanlinessRating())
                 .build();
 
-        switch (requestDto.getReviewCategoryType()) {
-            case PERFORMANCE:
-                Hall hall = null;
-                if (requestDto.getHallId() != null) {
-                    hall = hallService.getHallEntityById(requestDto.getHallId());
-                }
-                PerformanceReviewDetail performanceDetail = PerformanceReviewDetail.builder()
-                        .hall(hall)
-                        .showName(requestDto.getShowName())
-                        .artistName(requestDto.getArtistName())
-                        .seatArea(requestDto.getSeatArea())
-                        .seatRow(requestDto.getSeatRow())
-                        .seatNumber(requestDto.getSeatNumber())
-                        .seatDetail(requestDto.getSeatDetail())
-                        .showDate(requestDto.getShowDate())
-                        .round(requestDto.getRound())
-                        .build();
-                newReview.setPerformanceDetail(performanceDetail);
-                break;
-            case RESTAURANT:
-                RestaurantReviewDetail restaurantDetail = RestaurantReviewDetail.builder()
-                        .placeName(requestDto.getPlaceName())
-                        .restaurantCategory(requestDto.getRestaurantCategory())
-                        .restaurantAddress(requestDto.getRestaurantAddress())
-                        .restaurantLatitude(requestDto.getRestaurantLatitude())
-                        .restaurantLongitude(requestDto.getRestaurantLongitude())
-                        .brandName(requestDto.getBrandName())
-                        .build();
-                newReview.setRestaurantDetail(restaurantDetail);
-                break;
-            case FACILITY:
-                FacilityReviewDetail facilityDetail = FacilityReviewDetail.builder()
-                        .facilityType(requestDto.getFacilityType())
-                        .facilityTips(requestDto.getFacilityTips())
-                        .facilityCategory(requestDto.getFacilityCategory())
-                        .facilityAddress(requestDto.getFacilityAddress())
-                        .facilityLatitude(requestDto.getFacilityLatitude())
-                        .facilityLongitude(requestDto.getFacilityLongitude())
-                        .convenienceRating(requestDto.getConvenienceRating())
-                        .cleanlinessRating(requestDto.getCleanlinessRating())
-                        .build();
-                newReview.setFacilityDetail(facilityDetail);
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid review category type: " + requestDto.getReviewCategoryType());
-        }
-
-        // 이미지 처리
         if (requestDto.getImageUrls() != null && !requestDto.getImageUrls().isEmpty()) {
             for (String imageUrl : requestDto.getImageUrls()) {
                 ReviewImage reviewImage = ReviewImage.builder()
@@ -99,7 +89,6 @@ public class ReviewService {
             }
         }
 
-        // 키워드 처리
         if (requestDto.getKeywords() != null && !requestDto.getKeywords().isEmpty()) {
             for (String keywordText : requestDto.getKeywords()) {
                 newReview.addUserKeyword(UserKeyword.builder().keywordText(keywordText).build());
@@ -109,8 +98,8 @@ public class ReviewService {
         Review savedReview = reviewRepository.save(newReview);
 
         ReviewResponseDto responseDto = new ReviewResponseDto(savedReview);
-        if (savedReview.getReviewCategoryType() == ReviewCategory.PERFORMANCE && savedReview.getPerformanceDetail() != null && savedReview.getPerformanceDetail().getHall() != null) {
-            HallResponseDto hallResponseDto = hallService.getHallById(savedReview.getPerformanceDetail().getHall().getId());
+        if (savedReview.getPerformanceHall() != null) {
+            HallResponseDto hallResponseDto = hallService.getHallById(savedReview.getPerformanceHall().getId());
             responseDto.setHallInfo(hallResponseDto);
         }
 
@@ -119,15 +108,14 @@ public class ReviewService {
 
     @Transactional
     public ReviewResponseDto getReviewDetailById(Long reviewId) {
-        Review review = reviewRepository.findByIdWithDetails(reviewId)
+        Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NotFoundException("Review not found with id: " + reviewId));
 
         review.setViewCount(review.getViewCount() + 1);
 
         ReviewResponseDto responseDto = new ReviewResponseDto(review);
-
-        if (review.getReviewCategoryType() == ReviewCategory.PERFORMANCE && review.getPerformanceDetail() != null && review.getPerformanceDetail().getHall() != null) {
-            HallResponseDto hallResponseDto = hallService.getHallById(review.getPerformanceDetail().getHall().getId());
+        if (review.getPerformanceHall() != null) {
+            HallResponseDto hallResponseDto = hallService.getHallById(review.getPerformanceHall().getId());
             responseDto.setHallInfo(hallResponseDto);
         }
 
@@ -135,8 +123,8 @@ public class ReviewService {
     }
 
     @Transactional
-    public ReviewResponseDto updateReview(Long reviewId, Long userId, ReviewRequestDto requestDto) { // ⭐ DTO 이름 변경
-        Review review = reviewRepository.findByIdWithDetails(reviewId)
+    public ReviewResponseDto updateReview(Long reviewId, Long userId, ReviewRequestDto requestDto) {
+        Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NotFoundException("Review not found with id: " + reviewId));
 
         if (!review.getUser().getId().equals(userId)) {
@@ -163,51 +151,41 @@ public class ReviewService {
             }
         }
 
-        if (requestDto.getReviewCategoryType() == ReviewCategory.PERFORMANCE && review.getPerformanceDetail() != null) {
-            PerformanceReviewDetail performanceDetail = review.getPerformanceDetail();
-            Hall hall = null;
-            if (requestDto.getHallId() != null) {
-                hall = hallService.getHallEntityById(requestDto.getHallId());
-            }
-            performanceDetail.setHall(hall);
-            performanceDetail.setShowName(requestDto.getShowName());
-            performanceDetail.setArtistName(requestDto.getArtistName());
-            performanceDetail.setSeatArea(requestDto.getSeatArea());
-            performanceDetail.setSeatRow(requestDto.getSeatRow());
-            performanceDetail.setSeatNumber(requestDto.getSeatNumber());
-            performanceDetail.setSeatDetail(requestDto.getSeatDetail());
-            performanceDetail.setShowDate(requestDto.getShowDate());
-            performanceDetail.setRound(requestDto.getRound());
-
-        } else if (requestDto.getReviewCategoryType() == ReviewCategory.RESTAURANT && review.getRestaurantDetail() != null) {
-            RestaurantReviewDetail restaurantDetail = review.getRestaurantDetail();
-            restaurantDetail.setPlaceName(requestDto.getPlaceName());
-            restaurantDetail.setRestaurantCategory(requestDto.getRestaurantCategory());
-            restaurantDetail.setRestaurantAddress(requestDto.getRestaurantAddress());
-            restaurantDetail.setRestaurantLatitude(requestDto.getRestaurantLatitude());
-            restaurantDetail.setRestaurantLongitude(requestDto.getRestaurantLongitude());
-            restaurantDetail.setBrandName(requestDto.getBrandName());
-
-        } else if (requestDto.getReviewCategoryType() == ReviewCategory.FACILITY && review.getFacilityDetail() != null) {
-            FacilityReviewDetail facilityDetail = review.getFacilityDetail();
-            facilityDetail.setFacilityType(requestDto.getFacilityType());
-            facilityDetail.setFacilityTips(requestDto.getFacilityTips());
-            facilityDetail.setFacilityCategory(requestDto.getFacilityCategory());
-            facilityDetail.setFacilityAddress(requestDto.getFacilityAddress());
-            facilityDetail.setFacilityLatitude(requestDto.getFacilityLatitude());
-            facilityDetail.setFacilityLongitude(requestDto.getFacilityLongitude());
-            facilityDetail.setConvenienceRating(requestDto.getConvenienceRating());
-            facilityDetail.setCleanlinessRating(requestDto.getCleanlinessRating());
-        } else {
-            throw new IllegalArgumentException("Cannot change review type or invalid type for update.");
+        Hall performanceHall = null;
+        if (requestDto.getHallId() != null) {
+            performanceHall = hallService.getHallEntityById(requestDto.getHallId());
         }
+        review.setPerformanceHall(performanceHall);
+        review.setPerformanceShowName(requestDto.getPerformanceShowName());
+        review.setPerformanceArtistName(requestDto.getPerformanceArtistName());
+        review.setPerformanceSeatArea(requestDto.getPerformanceSeatArea());
+        review.setPerformanceSeatRow(requestDto.getPerformanceSeatRow());
+        review.setPerformanceSeatNumber(requestDto.getPerformanceSeatNumber());
+        review.setPerformanceSeatDetail(requestDto.getPerformanceSeatDetail());
+        review.setPerformanceShowDate(requestDto.getPerformanceShowDate());
+        review.setPerformanceRound(requestDto.getPerformanceRound());
+
+        review.setRestaurantPlaceName(requestDto.getRestaurantPlaceName());
+        review.setRestaurantCategory(requestDto.getRestaurantCategory());
+        review.setRestaurantAddress(requestDto.getRestaurantAddress());
+        review.setRestaurantLatitude(requestDto.getRestaurantLatitude());
+        review.setRestaurantLongitude(requestDto.getRestaurantLongitude());
+        review.setRestaurantBrandName(requestDto.getRestaurantBrandName());
+
+        review.setFacilityType(requestDto.getFacilityType());
+        review.setFacilityTips(requestDto.getFacilityTips());
+        review.setFacilityCategory(requestDto.getFacilityCategory());
+        review.setFacilityAddress(requestDto.getFacilityAddress());
+        review.setFacilityLatitude(requestDto.getFacilityLatitude());
+        review.setFacilityLongitude(requestDto.getFacilityLongitude());
+        review.setFacilityConvenienceRating(requestDto.getFacilityConvenienceRating());
+        review.setFacilityCleanlinessRating(requestDto.getFacilityCleanlinessRating());
 
         Review updatedReview = reviewRepository.save(review);
 
         ReviewResponseDto responseDto = new ReviewResponseDto(updatedReview);
-
-        if (updatedReview.getReviewCategoryType() == ReviewCategory.PERFORMANCE && updatedReview.getPerformanceDetail() != null && updatedReview.getPerformanceDetail().getHall() != null) {
-            HallResponseDto hallResponseDto = hallService.getHallById(updatedReview.getPerformanceDetail().getHall().getId());
+        if (updatedReview.getPerformanceHall() != null) {
+            HallResponseDto hallResponseDto = hallService.getHallById(updatedReview.getPerformanceHall().getId());
             responseDto.setHallInfo(hallResponseDto);
         }
 

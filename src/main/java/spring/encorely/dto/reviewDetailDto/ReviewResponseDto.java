@@ -1,24 +1,25 @@
 package spring.encorely.dto.reviewDetailDto;
 
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import spring.encorely.domain.reviewDetail.*;
-import spring.encorely.dto.commentDto.CommentResponseDto;
+import lombok.Setter;
+import spring.encorely.domain.reviewDetail.Review;
+import spring.encorely.domain.reviewDetail.ReviewCategory;
 import spring.encorely.dto.hallDto.HallResponseDto;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 public class ReviewResponseDto {
-
     private Long id;
-    private ReviewCategory reviewCategoryType;
-    private Long userId;
     private String userNickname;
+    private ReviewCategory reviewCategoryType;
     private Float rating;
     private String comment;
     private String detail;
@@ -27,48 +28,44 @@ public class ReviewResponseDto {
     private Integer commentCount;
     private Integer scrapCount;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
     private LocalDate visitDate;
-    private List<String> imageUrls;
-    private List<CommentResponseDto> comments;
-    private List<String> keywords;
 
-    // PerformanceReview
-    private Long hallId;
-    private String hallName;
-    private String showName;
-    private String artistName;
-    private String seatArea;
-    private String seatRow;
-    private String seatNumber;
-    private String seatDetail;
-    private LocalDate showDate;
-    private Integer round;
+    // Performance Review Detail
+    private HallResponseDto hallInfo;
+    private String performanceShowName;
+    private String performanceArtistName;
+    private String performanceSeatArea;
+    private String performanceSeatRow;
+    private String performanceSeatNumber;
+    private String performanceSeatDetail;
+    private LocalDate performanceShowDate;
+    private Integer performanceRound;
 
-    // RestaurantReview
-    private String placeName;
-    private RestaurantCategory restaurantCategory;
+    //Restaurant Review Detail
+    private String restaurantPlaceName;
+    private String restaurantCategory;
     private String restaurantAddress;
-    private String restaurantLatitude;
-    private String restaurantLongitude;
-    private String brandName;
+    private Double restaurantLatitude;
+    private Double restaurantLongitude;
+    private String restaurantBrandName;
 
-    // FacilityReview
+    //Facility Review Detail
     private String facilityType;
     private String facilityTips;
     private String facilityCategory;
     private String facilityAddress;
-    private String facilityLatitude;
-    private String facilityLongitude;
-    private Float convenienceRating;
-    private Float cleanlinessRating;
+    private Double facilityLatitude;
+    private Double facilityLongitude;
+    private Float facilityConvenienceRating;
+    private Float facilityCleanlinessRating;
 
-    private HallResponseDto hallInfo;
+    private List<String> imageUrls;
+    private Set<String> keywords;
 
     public ReviewResponseDto(Review review) {
         this.id = review.getId();
-        this.userId = review.getUser().getId();
-        this.userNickname = review.getUser().getNickname();
+        this.userNickname = review.getUser() != null ? review.getUser().getNickname() : null;
+        this.reviewCategoryType = review.getReviewCategoryType();
         this.rating = review.getRating();
         this.comment = review.getComment();
         this.detail = review.getDetail();
@@ -77,55 +74,42 @@ public class ReviewResponseDto {
         this.commentCount = review.getCommentCount();
         this.scrapCount = review.getScrapCount();
         this.createdAt = review.getCreatedAt();
-        this.updatedAt = review.getUpdatedAt();
         this.visitDate = review.getVisitDate();
-        this.reviewCategoryType = review.getReviewCategoryType();
+
+
+        // Performance
+        this.performanceShowName = review.getPerformanceShowName();
+        this.performanceArtistName = review.getPerformanceArtistName();
+        this.performanceSeatArea = review.getPerformanceSeatArea();
+        this.performanceSeatRow = review.getPerformanceSeatRow();
+        this.performanceSeatNumber = review.getPerformanceSeatNumber();
+        this.performanceSeatDetail = review.getPerformanceSeatDetail();
+        this.performanceShowDate = review.getPerformanceShowDate();
+        this.performanceRound = review.getPerformanceRound();
+
+        // Restaurant
+        this.restaurantPlaceName = review.getRestaurantPlaceName();
+        this.restaurantCategory = review.getRestaurantCategory();
+        this.restaurantAddress = review.getRestaurantAddress();
+        this.restaurantLatitude = review.getRestaurantLatitude();
+        this.restaurantLongitude = review.getRestaurantLongitude();
+        this.restaurantBrandName = review.getRestaurantBrandName();
+
+        // Facility
+        this.facilityType = review.getFacilityType();
+        this.facilityTips = review.getFacilityTips();
+        this.facilityCategory = review.getFacilityCategory();
+        this.facilityAddress = review.getFacilityAddress();
+        this.facilityLatitude = review.getFacilityLatitude();
+        this.facilityLongitude = review.getFacilityLongitude();
+        this.facilityConvenienceRating = review.getFacilityConvenienceRating();
+        this.facilityCleanlinessRating = review.getFacilityCleanlinessRating();
 
         this.imageUrls = review.getImages().stream()
-                .map(ReviewImage::getImageUrl)
+                .map(image -> image.getImageUrl())
                 .collect(Collectors.toList());
-
-        this.comments = review.getComments().stream()
-                .filter(c -> c.getParent() == null)
-                .map(CommentResponseDto::new)
-                .collect(Collectors.toList());
-
         this.keywords = review.getUserKeywords().stream()
-                .map(UserKeyword::getKeywordText)
-                .collect(Collectors.toList());
-
-        if (review.getReviewCategoryType() == ReviewCategory.PERFORMANCE && review.getPerformanceDetail() != null) {
-            PerformanceReviewDetail performanceDetail = review.getPerformanceDetail();
-            this.hallId = performanceDetail.getHall() != null ? performanceDetail.getHall().getId() : null;
-            this.hallName = performanceDetail.getHall() != null ? performanceDetail.getHall().getName() : null;
-            this.showName = performanceDetail.getShowName();
-            this.artistName = performanceDetail.getArtistName();
-            this.seatArea = performanceDetail.getSeatArea();
-            this.seatRow = performanceDetail.getSeatRow();
-            this.seatNumber = performanceDetail.getSeatNumber();
-            this.seatDetail = performanceDetail.getSeatDetail();
-            this.showDate = performanceDetail.getShowDate();
-            this.round = performanceDetail.getRound();
-
-        } else if (review.getReviewCategoryType() == ReviewCategory.RESTAURANT && review.getRestaurantDetail() != null) {
-            RestaurantReviewDetail restaurantDetail = review.getRestaurantDetail();
-            this.placeName = restaurantDetail.getPlaceName();
-            this.restaurantCategory = restaurantDetail.getRestaurantCategory();
-            this.restaurantAddress = restaurantDetail.getRestaurantAddress();
-            this.restaurantLatitude = restaurantDetail.getRestaurantLatitude();
-            this.restaurantLongitude = restaurantDetail.getRestaurantLongitude();
-            this.brandName = restaurantDetail.getBrandName();
-
-        } else if (review.getReviewCategoryType() == ReviewCategory.FACILITY && review.getFacilityDetail() != null) {
-            FacilityReviewDetail facilityDetail = review.getFacilityDetail();
-            this.facilityType = facilityDetail.getFacilityType();
-            this.facilityTips = facilityDetail.getFacilityTips();
-            this.facilityCategory = (facilityDetail.getFacilityCategory() != null) ? facilityDetail.getFacilityCategory().name() : null;
-            this.facilityAddress = facilityDetail.getFacilityAddress();
-            this.facilityLatitude = facilityDetail.getFacilityLatitude();
-            this.facilityLongitude = facilityDetail.getFacilityLongitude();
-            this.convenienceRating = facilityDetail.getConvenienceRating();
-            this.cleanlinessRating = facilityDetail.getCleanlinessRating();
-        }
+                .map(keyword -> keyword.getKeywordText())
+                .collect(Collectors.toSet());
     }
 }

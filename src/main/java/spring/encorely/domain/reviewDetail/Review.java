@@ -6,8 +6,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import spring.encorely.domain.comment.Comment;
 import spring.encorely.domain.hall.Hall;
-import spring.encorely.domain.like.Like;
+import spring.encorely.domain.reviewDetail.ReviewImage;
 import spring.encorely.domain.user.User;
+import spring.encorely.domain.reviewDetail.UserKeyword;
 
 import java.time.LocalDateTime;
 import java.time.LocalDate;
@@ -32,7 +33,7 @@ public class Review {
         private User user;
 
         @Enumerated(EnumType.STRING)
-        @Column(name = "review_category_type", nullable = false)
+        @Column(name = "review_category_type")
         private ReviewCategory reviewCategoryType;
 
         @Column(nullable = false)
@@ -67,32 +68,72 @@ public class Review {
         @Column(name = "visit_date")
         private LocalDate visitDate;
 
-        @OneToOne(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-        private PerformanceReviewDetail performanceDetail;
+        // PerformanceReviewDetail
+        @ManyToOne(fetch = FetchType.LAZY)
+        @JoinColumn(name = "performance_hall_id")
+        private Hall performanceHall;
+        @Column(name = "performance_show_name")
+        private String performanceShowName;
+        @Column(name = "performance_artist_name")
+        private String performanceArtistName;
+        @Column(name = "performance_seat_area")
+        private String performanceSeatArea;
+        @Column(name = "performance_seat_row")
+        private String performanceSeatRow;
+        @Column(name = "performance_seat_number")
+        private String performanceSeatNumber;
+        @Column(name = "performance_seat_detail", columnDefinition = "TEXT")
+        private String performanceSeatDetail;
+        @Column(name = "performance_show_date")
+        private LocalDate performanceShowDate;
+        @Column(name = "performance_round")
+        private Integer performanceRound;
 
-        @OneToOne(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-        private RestaurantReviewDetail restaurantDetail;
+        // RestaurantReviewDetail
+        @Column(name = "restaurant_place_name")
+        private String restaurantPlaceName;
+        @Column(name = "restaurant_category")
+        private String restaurantCategory;
+        @Column(name = "restaurant_address")
+        private String restaurantAddress;
+        @Column(name = "restaurant_latitude")
+        private Double restaurantLatitude;
+        @Column(name = "restaurant_longitude")
+        private Double restaurantLongitude;
+        @Column(name = "restaurant_brand_name")
+        private String restaurantBrandName;
 
-        @OneToOne(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-        private FacilityReviewDetail facilityDetail;
+        //FacilityReviewDetail
+        @Column(name = "facility_type")
+        private String facilityType;
+        @Column(name = "facility_tips", columnDefinition = "TEXT")
+        private String facilityTips;
+        @Column(name = "facility_category")
+        private String facilityCategory;
+        @Column(name = "facility_address")
+        private String facilityAddress;
+        @Column(name = "facility_latitude")
+        private Double facilityLatitude;
+        @Column(name = "facility_longitude")
+        private Double facilityLongitude;
+        @Column(name = "facility_convenience_rating")
+        private Float facilityConvenienceRating;
+        @Column(name = "facility_cleanliness_rating")
+        private Float facilityCleanlinessRating;
+
 
         @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
         @Builder.Default
         private Set<ReviewImage> images = new HashSet<>();
 
-        @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true) // Comment 엔티티와 연결
+        @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
         @Builder.Default
         private Set<Comment> comments = new HashSet<>();
 
         @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
         @Builder.Default
-        private Set<Like> likes = new HashSet<>();
-
-        @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
-        @Builder.Default
         private Set<UserKeyword> userKeywords = new HashSet<>();
 
-        // 편의 메서드
         public void addImage(ReviewImage image) {
                 this.images.add(image);
                 image.setReview(this);
@@ -103,35 +144,13 @@ public class Review {
                 userKeyword.setReview(this);
         }
 
-        public void setPerformanceDetail(PerformanceReviewDetail performanceDetail) {
-                this.performanceDetail = performanceDetail;
-                if (performanceDetail != null) {
-                        performanceDetail.setReview(this);
-                }
-        }
 
-        public void setRestaurantDetail(RestaurantReviewDetail restaurantDetail) {
-                this.restaurantDetail = restaurantDetail;
-                if (restaurantDetail != null) {
-                        restaurantDetail.setReview(this);
-                }
-        }
-
-        public void setFacilityDetail(FacilityReviewDetail facilityDetail) {
-                this.facilityDetail = facilityDetail;
-                if (facilityDetail != null) {
-                        facilityDetail.setReview(this);
-                }
-        }
-
-        // 좋아요 수 증가
         public void incrementLikeCount() {
                 this.likeCount++;
         }
 
-        // 좋아요 수 감소
         public void decrementLikeCount() {
-                if (this.likeCount > 0) { // 음수 방지
+                if (this.likeCount > 0) {
                         this.likeCount--;
                 }
         }

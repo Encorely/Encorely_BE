@@ -1,15 +1,12 @@
 spring:
-  jackson:
-    time-zone: Asia/Seoul
   datasource:
-    url: ${AWS_DB_ADDRESS}
-    username: admin
-    password: ${AWS_DB_PASSWORD}
+    url: jdbc:mysql://localhost:3306/Encorely?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: root
+    password: a12752411!
     driver-class-name: com.mysql.cj.jdbc.Driver
-  sql:
-    init:
-      mode: never
   jpa:
+    hibernate:
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
@@ -19,6 +16,10 @@ spring:
         hbm2ddl:
           auto: update
         default_batch_fetch_size: 1000
+
+  sql:
+    init:
+      mode: never
 
   cloud:
     aws:
@@ -33,7 +34,7 @@ spring:
       port: 6379
 
   jwt:
-    secret-key: ${SECRET_KEY}
+    secret-key: my-super-very-secret-jwt-key-local-999
 
   security:
     oauth2:
@@ -56,3 +57,13 @@ spring:
 custom:
   s3:
     bucket: encorely
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: prod
+        url: http://3.34.105.231:8080/v3/api-docs
+      - name: dev
+        url: http://13.209.39.26:8080/v3/api-docs
+      - name: local
+        url: http://localhost:8080/v3/api-docs

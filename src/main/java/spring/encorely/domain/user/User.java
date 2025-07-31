@@ -71,4 +71,16 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviewList = new ArrayList<>();
 
+    // 프로필 업데이트 메서드
+    public void updateProfile(String nickname, String introduction, String link) {
+        this.nickname = nickname;
+        this.introduction = introduction;
+        this.link = link;
+    }
+
+    // 프로필 이미지 업데이트 메서드 (별도 분리)
+    public void updateProfileImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
 }

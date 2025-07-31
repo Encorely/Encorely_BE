@@ -20,6 +20,8 @@ public enum ErrorStatus implements BaseErrorCode {
     INACTIVE_USER(HttpStatus.UNAUTHORIZED, "USER4002", "비활성화 된 사용자입니다."),
     UNAUTHORIZED(HttpStatus.BAD_REQUEST, "USER4003", "권한이 없는 사용자입니다."),
 
+    NICKNAME_DUPLICATE(HttpStatus.CONFLICT, "USER4004", "이미 사용 중인 닉네임입니다."),
+
     // 인증 관련 에러
     AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "AUTH4001", "이메일 또는 비밀번호가 일치하지 않습니다."),
     DYNAMIC_KEY_NOT_FOUND(HttpStatus.BAD_REQUEST, "AUTH4002", "사용자에 대한 동적 키가 존재하지 않습니다."),
@@ -34,6 +36,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 공연장 관련 에러
     HALL_NOT_FOUND(HttpStatus.BAD_REQUEST, "HALL4001", "존재하지 않는 공연장입니다.");
+
 
 
     private final HttpStatus httpStatus;

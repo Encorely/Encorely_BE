@@ -51,6 +51,10 @@ public class ReviewService {
                 .comment(request.getComment())
                 .showDetail(request.getShowDetail())
                 .seatDetail(request.getSeatDetail())
+                .commentCount(0)
+                .viewCount(0)
+                .likeCount(0)
+                .scrapCount(0)
                 .build();
 
         reviewRepository.save(review);

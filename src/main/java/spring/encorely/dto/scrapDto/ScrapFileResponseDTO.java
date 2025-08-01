@@ -26,4 +26,14 @@ public class ScrapFileResponseDTO {
         String name;
         LocalDateTime createdAt;
     }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class updateFileName{
+        Long fileId;
+        String name;
+        LocalDateTime updatedAt;
+    }
 }

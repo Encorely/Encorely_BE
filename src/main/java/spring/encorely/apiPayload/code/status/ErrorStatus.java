@@ -36,7 +36,8 @@ public enum ErrorStatus implements BaseErrorCode {
     HALL_NOT_FOUND(HttpStatus.BAD_REQUEST, "HALL4001", "존재하지 않는 공연장입니다."),
 
     // 스크랩 관련 에러
-    SCRAP_FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "SCRAPFILE4001", "존재하지 않는 파일입니다.");
+    SCRAP_FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "SCRAPFILE4001", "존재하지 않는 파일입니다."),
+    SCRAP_FILE_NAME_DUPLICATION(HttpStatus.CONFLICT, "FILE4002", "이미 존재하는 이름입니다");
 
 
     private final HttpStatus httpStatus;

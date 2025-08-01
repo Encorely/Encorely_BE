@@ -26,4 +26,12 @@ public class ScrapFileController {
     public ApiResponse<ScrapFileResponseDTO.addFile> addFile(@AuthenticationPrincipal UserDetails userDetails) {
         return ApiResponse.onSuccess(scrapFileService.addFile(Long.parseLong(userDetails.getUsername())));
     }
+
+    @PatchMapping("/{fileId}")
+    public ApiResponse<ScrapFileResponseDTO.updateFileName> updateFileName(@AuthenticationPrincipal UserDetails userDetails,
+                                                                           @PathVariable Long fileId,
+                                                                           @RequestBody ScrapFileRequestDTO.updateFileName request) {
+        return ApiResponse.onSuccess(scrapFileService.updateFileName(Long.parseLong(userDetails.getUsername()), fileId, request));
+    }
 }
+

@@ -63,4 +63,19 @@ public class ScrapFileService {
         scrapFileRespository.save(scrapFile);
         return new ScrapFileResponseDTO.addFile(scrapFile.getId(), scrapFile.getName(), scrapFile.getCreatedAt());
     }
+
+    @Transactional
+    public ScrapFileResponseDTO.updateFileName updateFileName(Long userId, Long fileId, ScrapFileRequestDTO.updateFileName request) {
+        User user = userRespository.findById(userId).orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        ScrapFile scrapFile = scrapFileRespository.findById(fileId).orElseThrow(() -> new ScrapHandler(ErrorStatus.SCRAP_FILE_NOT_FOUND));
+
+        if(scrapFileRespository.existsByUserAndName(user, request.getName())) {
+            throw new ScrapHandler(ErrorStatus.SCRAP_FILE_NAME_DUPLICATION);
+        }
+
+        scrapFile.changeName(request.getName());
+        scrapFileRespository.save(scrapFile);
+
+        return new ScrapFileResponseDTO.updateFileName(scrapFile.getId(), scrapFile.getName(), scrapFile.getUpdatedAt());
+    }
 }

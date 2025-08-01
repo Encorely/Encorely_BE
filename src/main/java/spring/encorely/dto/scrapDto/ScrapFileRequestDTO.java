@@ -9,4 +9,9 @@ public class ScrapFileRequestDTO {
         Long reviewId;
         ReviewCategory category;
     }
+
+    @Getter
+    public static class updateFileName {
+        String name;
+    }
 }

@@ -80,7 +80,7 @@ public class Review extends BaseEntity {
     @JoinColumn(nullable = false)
     private Hall hall;
 
-    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "review", orphanRemoval = true)
     private List<ReviewImage> reviewImageList  = new ArrayList<>();
 
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)

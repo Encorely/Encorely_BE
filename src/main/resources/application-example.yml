@@ -56,3 +56,13 @@ spring:
 custom:
   s3:
     bucket: encorely
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: prod
+        url: http://3.34.105.231:8080/v3/api-docs
+      - name: dev
+        url: http://13.209.39.26:8080/v3/api-docs
+      - name: local
+        url: http://localhost:8080/v3/api-docs

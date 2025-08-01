@@ -29,14 +29,13 @@ public class HallController {
             @Parameter(name = "size", description = "페이지 크기", example = "10"),
             @Parameter(name = "sort", description = "정렬 기준 필드, 예: ranking", example = "ranking")
     })
-    public ApiResponse<HallResponseDTO.HallRankingList> getHallList(@AuthenticationPrincipal UserDetails userDetails,
-                                                                    @PageableDefault(size = 10, sort = "ranking") Pageable pageable) {
+    public ApiResponse<HallResponseDTO.HallRankingList> getHallList(@PageableDefault(size = 10, sort = "ranking") Pageable pageable) {
         return ApiResponse.onSuccess(hallService.getHallList(pageable));
     }
 
     @GetMapping("/ranking")
     @Operation(summary = "인기 있는 공연장 상위 6개")
-    public ApiResponse<HallResponseDTO.HallRankingList> getHallRankingList(@AuthenticationPrincipal UserDetails userDetails) {
+    public ApiResponse<HallResponseDTO.HallRankingList> getHallRankingList() {
         return ApiResponse.onSuccess(hallService.getHallRankingList());
     }
 }

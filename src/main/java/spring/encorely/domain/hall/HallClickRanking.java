@@ -2,6 +2,8 @@ package spring.encorely.domain.hall;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 import spring.encorely.domain.common.BaseEntity;
 
 import java.time.LocalDate;
@@ -12,6 +14,8 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@DynamicUpdate
+@DynamicInsert
 public class HallClickRanking extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

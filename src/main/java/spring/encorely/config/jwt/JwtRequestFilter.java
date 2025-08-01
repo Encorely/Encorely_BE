@@ -8,28 +8,32 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import spring.encorely.apiPayload.code.status.ErrorStatus;
 import spring.encorely.apiPayload.exception.handler.AuthHandler;
+import spring.encorely.config.security.CustomUserDetails;
+import spring.encorely.domain.user.User;
+import spring.encorely.service.userService.UserService;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.List;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     private final JwtTokenUtil jwtTokenUtil;
+    private final UserService userService;
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
@@ -38,15 +42,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        log.debug("[JwtRequestFilter] 요청 시작: {} {}", request.getMethod(), request.getRequestURI());
+
         String accessToken = extractTokenFromCookies(request, "accessToken");
         String refreshToken = extractTokenFromCookies(request, "refreshToken");
 
+        log.debug("[JwtRequestFilter] accessToken: {}", accessToken);
+        log.debug("[JwtRequestFilter] refreshToken: {}", refreshToken);
+
         if (accessToken != null) {
-            try {
-                handleAccessToken(accessToken, request);
-            } catch (Exception e) {
-                tryRefreshingWithRefreshToken(refreshToken, response, request);
-            }
+            handleAccessToken(accessToken, request);
         } else if (refreshToken != null) {
             tryRefreshingWithRefreshToken(refreshToken, response, request);
         }
@@ -67,7 +72,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     }
 
     private void tryRefreshingWithRefreshToken(String refreshToken, HttpServletResponse response, HttpServletRequest request) {
-        if (refreshToken == null || isBlacklisted(refreshToken)) return;
+        if (refreshToken == null) {
+            return;
+        }
+        if (isBlacklisted(refreshToken)) {
+            return;
+        }
 
         try {
             Claims refreshClaims = JwtTokenUtil.validateToken(refreshToken);
@@ -75,6 +85,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             String role = (String) refreshClaims.get("role");
 
             String storedRefresh = redisTemplate.opsForValue().get(id);
+
             if (refreshToken.equals(storedRefresh)) {
                 String newAccessToken = jwtTokenUtil.generateAccessToken(id);
                 addAccessTokenCookie(response, newAccessToken);
@@ -88,14 +99,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     }
 
     private boolean isBlacklisted(String token) {
-        return Boolean.TRUE.equals(redisTemplate.hasKey("BLACKLIST" + token));
+        boolean result = Boolean.TRUE.equals(redisTemplate.hasKey("BLACKLIST" + token));
+        return result;
     }
 
     private void setAuthentication(String userId, String role, HttpServletRequest request) {
         if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
+            User user = userService.findById(Long.parseLong(userId));
+            CustomUserDetails userDetails = new CustomUserDetails(user);
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userId, null, authorities);
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
@@ -122,4 +135,5 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         }
         return null;
     }
+
 }

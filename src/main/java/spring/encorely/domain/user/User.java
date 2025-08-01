@@ -74,4 +74,16 @@
         @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
         private List<Review> reviewList = new ArrayList<>();
 
+        @OneToMany(mappedBy = "following", cascade = CascadeType.ALL, orphanRemoval = true)
+        private List<UserFollow> followerList = new ArrayList<>();
+
+        @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true)
+        private List<UserFollow> followingList = new ArrayList<>();
+
+        @OneToMany(mappedBy = "blocked", cascade = CascadeType.ALL)
+        private List<UserBlock> blockedList = new ArrayList<>();
+
+        @OneToMany(mappedBy = "blocker", cascade = CascadeType.ALL)
+        private List<UserBlock> blockerList = new ArrayList<>();
+
     }

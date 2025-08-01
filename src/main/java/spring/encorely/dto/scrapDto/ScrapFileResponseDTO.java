@@ -16,4 +16,14 @@ public class ScrapFileResponseDTO {
         Long reviewScrapId;
         LocalDateTime createdAt;
     }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class addFile{
+        Long fileId;
+        String name;
+        LocalDateTime createdAt;
+    }
 }

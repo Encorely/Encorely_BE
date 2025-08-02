@@ -34,7 +34,6 @@ services:
 
 networks:
   container-bridge:
-    external: true
 
 volumes:
   redis-data-dev:

@@ -9,9 +9,10 @@ services:
     environment:
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
+    depends_on:
+      redis:
+        condition: service_healthy
     restart: on-failure
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     networks:
       - container-bridge
 
@@ -34,6 +35,7 @@ services:
 
 networks:
   container-bridge:
+    driver: bridge
 
 volumes:
   redis-data-dev:

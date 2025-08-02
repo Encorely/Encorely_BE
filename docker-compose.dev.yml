@@ -7,8 +7,34 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATA_REDIS_HOST=host.docker.internal
+      - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
     restart: on-failure
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    networks:
+      - container-bridge
+
+  redis:
+    image: redis:7.0-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--bind", "0.0.0.0", "--port", "6379"]
+    networks:
+      - container-bridge
+    volumes:
+      - redis-data-dev:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+networks:
+  container-bridge:
+    external: true
+
+volumes:
+  redis-data-dev:

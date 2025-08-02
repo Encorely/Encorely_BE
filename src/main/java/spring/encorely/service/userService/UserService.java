@@ -158,6 +158,7 @@ public class UserService {
         return UserResponseDTO.UserInfo.builder()
                 .id(accessUser.getId())
                 .isFollowing(isFollowing)
+                .nickname(accessUser.getNickname())
                 .viewedShowCount(accessUser.getViewedShowCount())
                 .followers(accessUser.getFollowers())
                 .followings(accessUser.getFollowings())

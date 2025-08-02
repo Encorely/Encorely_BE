@@ -10,3 +10,5 @@ services:
       - SPRING_DATA_REDIS_HOST=<EC2_HOST_IP_OR_LOCALHOST>
       - SPRING_DATA_REDIS_PORT=6379
     restart: on-failure
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

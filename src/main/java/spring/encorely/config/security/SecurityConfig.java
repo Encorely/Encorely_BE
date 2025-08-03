@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -12,6 +13,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import spring.encorely.config.jwt.JwtRequestFilter;
 
 import java.util.List;
+
+import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
 
 @Slf4j
 @EnableWebSecurity
@@ -39,6 +42,18 @@ public class SecurityConfig {
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**", "/auth/**", "/oauth2/**", "/login/**", "/**", "/error/**").permitAll()
                     //   .requestMatchers("/api/s3/**").hasRole("USER")
+                        .requestMatchers(antMatcher(HttpMethod.GET, "/api/reviews/{reviewId}")).permitAll()
+                        .requestMatchers(antMatcher(HttpMethod.GET, "/api/reviews")).permitAll()
+                        .requestMatchers(antMatcher(HttpMethod.GET, "/api/reviews/{reviewId}/comments")).permitAll()
+
+                        .requestMatchers(antMatcher("/api/reviews/*/like-toggle")).authenticated()
+                        .requestMatchers(antMatcher("/api/reviews/*/has-liked")).authenticated()
+                        .requestMatchers(antMatcher(HttpMethod.POST, "/api/reviews/*/comments")).authenticated()
+                        .requestMatchers(antMatcher(HttpMethod.POST, "/api/reviews/*/comments/*/replies")).authenticated()
+                        .requestMatchers(antMatcher(HttpMethod.DELETE, "/api/reviews/*/comments/*")).authenticated()
+
+                        .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**", "/auth/**", "/oauth2/**", "/login/**").permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2

@@ -4,9 +4,11 @@
     import lombok.*;
     import org.hibernate.annotations.DynamicInsert;
     import org.hibernate.annotations.DynamicUpdate;
+    import spring.encorely.domain.comment.Comment;
     import spring.encorely.domain.common.BaseEntity;
     import spring.encorely.domain.enums.Role;
     import spring.encorely.domain.enums.Status;
+    import spring.encorely.domain.like.Like;
     import spring.encorely.domain.review.Review;
     import spring.encorely.listener.UserEntityListener;
 
@@ -85,5 +87,11 @@
 
         @OneToMany(mappedBy = "blocker", cascade = CascadeType.ALL)
         private List<UserBlock> blockerList = new ArrayList<>();
+
+        @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+        private List<Like> likeList = new ArrayList<>();
+
+        @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+        private List<Comment> commentList = new ArrayList<>();
 
     }

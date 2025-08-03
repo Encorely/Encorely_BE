@@ -11,6 +11,7 @@ import spring.encorely.apiPayload.exception.handler.HallHandler;
 import spring.encorely.domain.hall.Hall;
 import spring.encorely.domain.hall.HallClickRanking;
 import spring.encorely.dto.hallDto.HallResponseDTO;
+import spring.encorely.exception.NotFoundException;
 import spring.encorely.repository.hallRepostiory.HallClickLogRepository;
 import spring.encorely.repository.hallRepostiory.HallClickRankingRepository;
 import spring.encorely.repository.hallRepostiory.HallRepository;
@@ -19,6 +20,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import spring.encorely.dto.hallDto.HallResponseDto;
 
 @Service
 @RequiredArgsConstructor
@@ -91,5 +93,15 @@ public class HallService {
                 .build();
     }
 
+    public Hall getHallEntityById(Long hallId) {
+        return hallRepository.findById(hallId)
+                .orElseThrow(() -> new NotFoundException("Hall not found with id: " + hallId));
+    }
+
+    public HallResponseDto getHallById(Long hallId) {
+        Hall hall = hallRepository.findById(hallId)
+                .orElseThrow(() -> new NotFoundException("Hall not found with id: " + hallId));
+        return new HallResponseDto(hall);
+    }
 
 }

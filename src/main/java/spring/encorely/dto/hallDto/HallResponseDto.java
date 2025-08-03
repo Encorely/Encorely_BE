@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+//
 public class HallResponseDTO {
 
     @Builder

@@ -88,10 +88,10 @@
         @OneToMany(mappedBy = "blocker", cascade = CascadeType.ALL)
         private List<UserBlock> blockerList = new ArrayList<>();
 
-        @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+        @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
         private List<Like> likeList = new ArrayList<>();
 
-        @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+        @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
         private List<Comment> commentList = new ArrayList<>();
 
     }

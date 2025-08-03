@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 @NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class CommentRequestDto {
 

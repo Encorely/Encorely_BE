@@ -158,6 +158,7 @@ public class UserService {
         return UserResponseDTO.UserInfo.builder()
                 .id(accessUser.getId())
                 .isFollowing(isFollowing)
+                .nickname(accessUser.getNickname())
                 .viewedShowCount(accessUser.getViewedShowCount())
                 .followers(accessUser.getFollowers())
                 .followings(accessUser.getFollowings())
@@ -230,6 +231,10 @@ public class UserService {
         if (request.getLink() != null) {
             user.setLink(request.getLink());
         }
+    }
+
+    public boolean checkNicknameDuplicate(String nickname) {
+        return userRepository.existsByNickname(nickname);
     }
 
 }

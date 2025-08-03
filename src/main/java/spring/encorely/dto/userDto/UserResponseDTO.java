@@ -62,6 +62,7 @@ public class UserResponseDTO {
     public static class UserInfo {
 
         Long id;
+        String nickname;
         boolean isFollowing;
         Integer viewedShowCount;
         Integer followers;

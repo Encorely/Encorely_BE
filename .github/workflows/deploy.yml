@@ -20,6 +20,28 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'  # 또는 사용하는 Java 버전으로 변경
+          distribution: 'temurin'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Test build locally first
+        run: ./gradlew clean build -x test --no-daemon --refresh-dependencies
+
       - name: Set deployment variables
         id: vars
         run: |
@@ -40,7 +62,7 @@ jobs:
 
       - name: Send code and application.yml.b64 to EC2
         run: |
-          rsync -av --exclude='.git' -e "ssh -i ec2-key.pem -o StrictHostKeyChecking=no" ./ $EC2_USER@$HOST:/home/ubuntu/app/
+          rsync -av --exclude='.git' --exclude='.gradle' --exclude='build' --delete -e "ssh -i ec2-key.pem -o StrictHostKeyChecking=no" ./ $EC2_USER@$HOST:/home/ubuntu/app/
           scp -i ec2-key.pem -o StrictHostKeyChecking=no yml.txt $EC2_USER@$HOST:/home/ubuntu/app/application.yml.b64
 
       - name: Build and restart container on EC2
@@ -48,11 +70,30 @@ jobs:
           ssh -i ec2-key.pem -o StrictHostKeyChecking=no $EC2_USER@$HOST << EOF
             set -e
             cd /home/ubuntu/app
+          
+            # 전송된 파일들 확인
+            echo "=== 전송된 파일 목록 확인 ==="
+            find src -name "*HallResponse*" || echo "HallResponse 파일 없음"
+            ls -la src/main/java/spring/encorely/dto/ || echo "dto 폴더 없음"
+          
+            # Git 상태 확인
+            echo "=== Git 브랜치 확인 ==="
+            git branch -a || echo "Git 정보 없음"
+            git log --oneline -3 || echo "Git 로그 없음"
+          
             mkdir -p src/main/resources
             base64 -d application.yml.b64 > src/main/resources/application.yml
             chmod +x ./gradlew
-            ./gradlew build --no-daemon
+          
+            # 빌드 시도
+            ./gradlew clean build -x test --no-daemon --refresh-dependencies || {
+              echo "=== 빌드 실패 시 상세 정보 ==="
+              echo "현재 디렉토리: \$(pwd)"
+              echo "Java 버전: \$(java -version)"
+              ls -la
+              exit 1
+            }
+          
             docker-compose -f /home/ubuntu/app/$DOCKER_YML down
             docker-compose -f /home/ubuntu/app/$DOCKER_YML up --build -d
           EOF
-

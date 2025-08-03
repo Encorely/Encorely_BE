@@ -17,20 +17,21 @@ import spring.encorely.repository.reviewRepository.ReviewRepository;
 import spring.encorely.repository.scrapRepository.ScrapFileRepository;
 import spring.encorely.repository.scrapRepository.ScrapReviewRepository;
 import spring.encorely.repository.userRepository.UserRepository;
+import spring.encorely.service.reviewService.ReviewService;
+import spring.encorely.service.userService.UserService;
 
 @Service
 @RequiredArgsConstructor
 public class ScrapFileService {
     private final ScrapReviewRepository scrapReviewRespository;
     private final ScrapFileRepository scrapFileRespository;
-    private final ReviewRepository reviewRepository;
-    private final UserRepository userRespository;
+    private final ReviewService reviewService;
+    private final UserService userService;
 
     @Transactional
     public ScrapFileResponseDTO.addReviewToFile addReviewToFile(Long fileId, ScrapFileRequestDTO.addReviewToFile request) {
         ScrapFile scrapFile = scrapFileRespository.findById(fileId).orElseThrow(() -> new ScrapHandler(ErrorStatus.SCRAP_FILE_NOT_FOUND));
-        Review review = reviewRepository.findById(request.getReviewId()).orElseThrow(() -> new ReviewHandler(ErrorStatus.REVIEW_NOT_FOUND));
-
+        Review review = reviewService.findById(request.getReviewId());
 
         ScrapReview scrapReview = ScrapReview.builder()
                 .scrapFile(scrapFile)
@@ -44,7 +45,7 @@ public class ScrapFileService {
 
     @Transactional
     public ScrapFileResponseDTO.addFile addFile(Long userId) {
-        User user = userRespository.findById(userId).orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        User user = userService.findById(userId);
 
         int suffix = 1;
         String baseName = "File";
@@ -66,7 +67,7 @@ public class ScrapFileService {
 
     @Transactional
     public ScrapFileResponseDTO.updateFileName updateFileName(Long userId, Long fileId, ScrapFileRequestDTO.updateFileName request) {
-        User user = userRespository.findById(userId).orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        User user = userService.findById(userId);
         ScrapFile scrapFile = scrapFileRespository.findById(fileId).orElseThrow(() -> new ScrapHandler(ErrorStatus.SCRAP_FILE_NOT_FOUND));
 
         if(scrapFileRespository.existsByUserAndName(user, request.getName())) {

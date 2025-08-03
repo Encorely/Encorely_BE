@@ -3,19 +3,17 @@ package spring.encorely.service.s3Service;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
+import spring.encorely.domain.review.ReviewImage;
 import spring.encorely.dto.s3Dto.S3ResponseDTO;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -52,18 +50,12 @@ public class S3Service {
         s3Client.deleteObject(bucket, key);
     }
 
-    public String uploadFile(MultipartFile file) throws IOException {
-        String originalFileName = file.getOriginalFilename();
-        String storedFileName = "dev/" + UUID.randomUUID() + "_" + originalFileName;
-
-        ObjectMetadata metadata = new ObjectMetadata();
-        metadata.setContentType(file.getContentType());
-        metadata.setContentLength(file.getSize());
-
-        s3Client.putObject(new PutObjectRequest(bucket, storedFileName, file.getInputStream(), metadata));
-
-        return s3Client.getUrl(bucket, storedFileName).toString();
+    public void deleteAllImages(List<ReviewImage> images) {
+        for (ReviewImage image : images) {
+            URI uri = URI.create(image.getImageUrl());
+            String key = uri.getPath().substring(1);
+            s3Client.deleteObject(bucket, key);
+        }
     }
-
 
 }

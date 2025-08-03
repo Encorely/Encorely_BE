@@ -35,8 +35,16 @@ public enum ErrorStatus implements BaseErrorCode {
     KEYWORDS_NOT_FOUND(HttpStatus.BAD_REQUEST, "REVIEW4003", "존재하지 않는 키워드입니다."),
 
     // 공연장 관련 에러
-    HALL_NOT_FOUND(HttpStatus.BAD_REQUEST, "HALL4001", "존재하지 않는 공연장입니다.");
+    HALL_NOT_FOUND(HttpStatus.BAD_REQUEST, "HALL4001", "존재하지 않는 공연장입니다."),
 
+    // 댓글 관련 에러
+    COMMENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "COMMENT4001", "존재하지 않는 댓글입니다."),
+
+    // 식당 관련 에러
+    RESTAURANT_NOT_FOUND(HttpStatus.BAD_REQUEST, "RESTAURANT4001", "존재하지 않는 식당입니다."),
+
+    // 편의시설 관련 에러
+    FACILITY_NOT_FOUND(HttpStatus.BAD_REQUEST, "FACILITY4001", "존재하지 않는 편의시설입니다.");
 
 
     private final HttpStatus httpStatus;

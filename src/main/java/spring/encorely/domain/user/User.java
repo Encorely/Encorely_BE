@@ -4,9 +4,11 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import spring.encorely.domain.comment.Comment;
 import spring.encorely.domain.common.BaseEntity;
 import spring.encorely.domain.enums.Role;
 import spring.encorely.domain.enums.Status;
+import spring.encorely.domain.like.Like;
 import spring.encorely.domain.review.Review;
 import spring.encorely.listener.UserEntityListener;
 
@@ -68,19 +70,28 @@ public class User extends BaseEntity {
     @Column
     private String link;
 
+    @Column
+    private Integer viewedShowCount = 0;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviewList = new ArrayList<>();
 
-    // 프로필 업데이트 메서드
-    public void updateProfile(String nickname, String introduction, String link) {
-        this.nickname = nickname;
-        this.introduction = introduction;
-        this.link = link;
-    }
+    @OneToMany(mappedBy = "following", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserFollow> followerList = new ArrayList<>();
 
-    // 프로필 이미지 업데이트 메서드 (별도 분리)
-    public void updateProfileImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
+    @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserFollow> followingList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "blocked", cascade = CascadeType.ALL)
+    private List<UserBlock> blockedList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "blocker", cascade = CascadeType.ALL)
+    private List<UserBlock> blockerList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Like> likeList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> commentList = new ArrayList<>();
 
 }

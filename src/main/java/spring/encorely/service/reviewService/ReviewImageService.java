@@ -7,6 +7,7 @@ import spring.encorely.apiPayload.code.status.ErrorStatus;
 import spring.encorely.apiPayload.exception.handler.ReviewHandler;
 import spring.encorely.apiPayload.exception.handler.UserHandler;
 import spring.encorely.domain.enums.ReviewImageCategory;
+import spring.encorely.domain.enums.ReviewImageType;
 import spring.encorely.domain.review.Facility;
 import spring.encorely.domain.review.Restaurant;
 import spring.encorely.domain.review.Review;
@@ -18,6 +19,7 @@ import spring.encorely.repository.reviewRepository.ReviewImageRepository;
 import spring.encorely.service.s3Service.S3Service;
 import spring.encorely.service.userService.UserService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -95,17 +97,57 @@ public class ReviewImageService {
     }
 
     @Transactional
-    public void deleteReviewImage(Long userId, Long imageId) {
-        User user = userService.findById(userId);
+    public void deleteReviewImage(Long imageId) {
         ReviewImage reviewImage = findById(imageId);
-
-        if (!reviewImage.getReview().getUser().getId().equals(user.getId())) {
-            throw new UserHandler(ErrorStatus.UNAUTHORIZED);
-        }
 
         s3Service.delete(reviewImage.getImageUrl());
 
         reviewImageRepository.delete(reviewImage);
+    }
+
+    @Transactional
+    public void deleteAllImages(Review review) {
+        List<ReviewImage> reviewImages = review.getReviewImageList();
+        List<Restaurant> restaurants = review.getRestaurantList();
+        List<Facility> facilities = review.getFacilityList();
+
+        for (Restaurant restaurant : restaurants) {
+            reviewImages.add(restaurant.getReviewImage());
+        }
+
+        for (Facility facility : facilities) {
+            reviewImages.add(facility.getReviewImage());
+        }
+
+        s3Service.deleteAllImages(reviewImages);
+    }
+
+    public List<ReviewResponseDTO.Image> getImages(ReviewImageType type, Review review) {
+        List<ReviewResponseDTO.Image> dtos = new ArrayList<>();
+        List<ReviewImage> reviewImages = reviewImageRepository.findAllByReviewAndType(review, type);
+
+        for (ReviewImage reviewImage : reviewImages) {
+            ReviewResponseDTO.Image dto = ReviewResponseDTO.Image.builder()
+                    .imageId(reviewImage.getId())
+                    .imageUrl(reviewImage.getImageUrl())
+                    .build();
+
+            dtos.add(dto);
+        }
+
+        return dtos;
+    }
+
+    public ReviewResponseDTO.Image getImage(Restaurant restaurant, Facility facility) {
+        ReviewImage reviewImage = null;
+        if (restaurant != null) {
+            reviewImage = reviewImageRepository.findByRestaurant(restaurant);
+        } else reviewImage = reviewImageRepository.findByFacility(facility);
+
+        return ReviewResponseDTO.Image.builder()
+                .imageId(reviewImage.getId())
+                .imageUrl(reviewImage.getImageUrl())
+                .build();
     }
 
 }

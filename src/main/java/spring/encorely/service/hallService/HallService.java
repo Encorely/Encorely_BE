@@ -20,7 +20,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import spring.encorely.dto.hallDto.HallResponseDto;
 
 @Service
 @RequiredArgsConstructor
@@ -91,17 +90,6 @@ public class HallService {
         return HallResponseDTO.HallRankingList.builder()
                 .hallRankingList(hallRankingList)
                 .build();
-    }
-
-    public Hall getHallEntityById(Long hallId) {
-        return hallRepository.findById(hallId)
-                .orElseThrow(() -> new NotFoundException("Hall not found with id: " + hallId));
-    }
-
-    public HallResponseDto getHallById(Long hallId) {
-        Hall hall = hallRepository.findById(hallId)
-                .orElseThrow(() -> new NotFoundException("Hall not found with id: " + hallId));
-        return new HallResponseDto(hall);
     }
 
 }

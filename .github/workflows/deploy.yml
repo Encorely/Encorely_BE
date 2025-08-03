@@ -20,6 +20,28 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'  # 또는 사용하는 Java 버전으로 변경
+          distribution: 'temurin'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Test build locally first
+        run: ./gradlew clean build --no-daemon --refresh-dependencies
+
       - name: Set deployment variables
         id: vars
         run: |
@@ -40,7 +62,7 @@ jobs:
 
       - name: Send code and application.yml.b64 to EC2
         run: |
-          rsync -av --exclude='.git' -e "ssh -i ec2-key.pem -o StrictHostKeyChecking=no" ./ $EC2_USER@$HOST:/home/ubuntu/app/
+          rsync -av --exclude='.git' --exclude='.gradle' --exclude='build' -e "ssh -i ec2-key.pem -o StrictHostKeyChecking=no" ./ $EC2_USER@$HOST:/home/ubuntu/app/
           scp -i ec2-key.pem -o StrictHostKeyChecking=no yml.txt $EC2_USER@$HOST:/home/ubuntu/app/application.yml.b64
 
       - name: Build and restart container on EC2
@@ -51,8 +73,7 @@ jobs:
             mkdir -p src/main/resources
             base64 -d application.yml.b64 > src/main/resources/application.yml
             chmod +x ./gradlew
-            ./gradlew build --no-daemon
+            ./gradlew clean build --no-daemon --refresh-dependencies
             docker-compose -f /home/ubuntu/app/$DOCKER_YML down
             docker-compose -f /home/ubuntu/app/$DOCKER_YML up --build -d
           EOF
-

@@ -7,6 +7,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import spring.encorely.apiPayload.ApiResponse;
+import spring.encorely.dto.userDto.CommonResponseDto;
 import spring.encorely.dto.userDto.UserRequestDTO;
 import spring.encorely.dto.userDto.UserResponseDTO;
 import spring.encorely.service.userService.UserService;
@@ -78,6 +79,17 @@ public class UserController {
                                           @Valid @RequestBody UserRequestDTO.UpdateUser request) {
         userService.updateUser(Long.parseLong(userDetails.getUsername()), request);
         return ApiResponse.onSuccess("프로필이 수정되었습니다.");
+    }
+
+    @GetMapping("/nickname/duplicate")
+    public ApiResponse<Object> checkNicknameDuplicate(@RequestParam String nickname) {
+        boolean isDuplicate = userService.checkNicknameDuplicate(nickname);
+
+        if (isDuplicate) {
+            return ApiResponse.onSuccess(new CommonResponseDto(false, "중복된 닉네임입니다."));
+        } else {
+            return ApiResponse.onSuccess(new CommonResponseDto(true, "사용 가능한 닉네임입니다."));
+        }
     }
 
 }

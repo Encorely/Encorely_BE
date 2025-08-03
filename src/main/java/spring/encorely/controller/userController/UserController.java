@@ -73,6 +73,12 @@ public class UserController {
         return ApiResponse.onSuccess(userService.getFollowings(Long.parseLong(userDetails.getUsername())));
     }
 
+    @GetMapping("/blockedList")
+    @Operation(summary = "차단된 계정 불러오기")
+    public ApiResponse<List<UserResponseDTO.BlockedInfo>> getBlockedUsers(@AuthenticationPrincipal UserDetails userDetails) {
+        return ApiResponse.onSuccess(userService.getBlockedUsers(Long.parseLong(userDetails.getUsername())));
+    }
+
     @PutMapping
     @Operation(summary = "유저 프로필 수정")
     public ApiResponse<String> updateUser(@AuthenticationPrincipal UserDetails userDetails,
@@ -82,6 +88,7 @@ public class UserController {
     }
 
     @GetMapping("/nickname/duplicate")
+    @Operation(summary = "닉네임 중복 확인")
     public ApiResponse<Object> checkNicknameDuplicate(@RequestParam String nickname) {
         boolean isDuplicate = userService.checkNicknameDuplicate(nickname);
 

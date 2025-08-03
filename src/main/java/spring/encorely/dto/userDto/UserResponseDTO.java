@@ -97,4 +97,16 @@ public class UserResponseDTO {
 
     }
 
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BlockedInfo {
+
+        Long id;
+        String imageUrl;
+        String nickname;
+
+    }
+
 }

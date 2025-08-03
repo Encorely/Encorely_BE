@@ -53,9 +53,9 @@ public class UserKeywordsService {
         List<UserKeywords> userKeywords = new ArrayList<>();
 
         if (review != null) {
-            userKeywords = userKeywordsRepository.findAllByReview(review);
+            userKeywords = userKeywordsRepository.findAllByReviewOrderByCreatedAtAsc(review);
         } else {
-            userKeywords = userKeywordsRepository.findAllByRestaurant(restaurant);
+            userKeywords = userKeywordsRepository.findAllByRestaurantOrderByCreatedAtAsc(restaurant);
         }
 
         for (UserKeywords userKeyword : userKeywords) {

@@ -10,6 +10,6 @@ import java.util.List;
 
 @Repository
 public interface UserKeywordsRepository extends JpaRepository<UserKeywords, Long> {
-    List<UserKeywords> findAllByReview(Review review);
-    List<UserKeywords> findAllByRestaurant(Restaurant restaurant);
+    List<UserKeywords> findAllByReviewOrderByCreatedAtAsc(Review review);
+    List<UserKeywords> findAllByRestaurantOrderByCreatedAtAsc(Restaurant restaurant);
 }

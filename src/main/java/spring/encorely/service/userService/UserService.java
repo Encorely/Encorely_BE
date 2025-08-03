@@ -216,6 +216,22 @@ public class UserService {
                 .toList();
     }
 
+    public List<UserResponseDTO.BlockedInfo> getBlockedUsers(Long id) {
+        User user = findById(id);
+
+        List<User> blockedUsers = userBlockRepository.findAllByBlocker(user).stream()
+                .map(UserBlock::getBlocked)
+                .toList();
+
+        return blockedUsers.stream()
+                .map(f -> UserResponseDTO.BlockedInfo.builder()
+                        .id(f.getId())
+                        .imageUrl(f.getImageUrl())
+                        .nickname(f.getNickname())
+                        .build())
+                .toList();
+    }
+
     @Transactional
     public void updateUser(Long id, UserRequestDTO.UpdateUser request) {
         User user = findById(id);

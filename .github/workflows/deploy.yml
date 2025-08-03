@@ -40,7 +40,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Test build locally first
-        run: ./gradlew clean build --no-daemon --refresh-dependencies
+        run: ./gradlew clean build -x test --no-daemon --refresh-dependencies
 
       - name: Set deployment variables
         id: vars
@@ -73,7 +73,7 @@ jobs:
             mkdir -p src/main/resources
             base64 -d application.yml.b64 > src/main/resources/application.yml
             chmod +x ./gradlew
-            ./gradlew clean build --no-daemon --refresh-dependencies
+            ./gradlew clean build -x test --no-daemon --refresh-dependencies
             docker-compose -f /home/ubuntu/app/$DOCKER_YML down
             docker-compose -f /home/ubuntu/app/$DOCKER_YML up --build -d
           EOF

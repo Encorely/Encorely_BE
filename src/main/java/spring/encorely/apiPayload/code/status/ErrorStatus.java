@@ -20,8 +20,6 @@ public enum ErrorStatus implements BaseErrorCode {
     INACTIVE_USER(HttpStatus.UNAUTHORIZED, "USER4002", "비활성화 된 사용자입니다."),
     UNAUTHORIZED(HttpStatus.BAD_REQUEST, "USER4003", "권한이 없는 사용자입니다."),
 
-    NICKNAME_DUPLICATE(HttpStatus.CONFLICT, "USER4004", "이미 사용 중인 닉네임입니다."),
-
     // 인증 관련 에러
     AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "AUTH4001", "이메일 또는 비밀번호가 일치하지 않습니다."),
     DYNAMIC_KEY_NOT_FOUND(HttpStatus.BAD_REQUEST, "AUTH4002", "사용자에 대한 동적 키가 존재하지 않습니다."),
@@ -44,8 +42,11 @@ public enum ErrorStatus implements BaseErrorCode {
     RESTAURANT_NOT_FOUND(HttpStatus.BAD_REQUEST, "RESTAURANT4001", "존재하지 않는 식당입니다."),
 
     // 편의시설 관련 에러
-    FACILITY_NOT_FOUND(HttpStatus.BAD_REQUEST, "FACILITY4001", "존재하지 않는 편의시설입니다.");
+    FACILITY_NOT_FOUND(HttpStatus.BAD_REQUEST, "FACILITY4001", "존재하지 않는 편의시설입니다."),
 
+    // 스크랩 관련 에러
+    SCRAP_FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "SCRAPFILE4001", "존재하지 않는 파일입니다."),
+    SCRAP_FILE_NAME_DUPLICATION(HttpStatus.CONFLICT, "FILE4002", "이미 존재하는 이름입니다");
 
     private final HttpStatus httpStatus;
     private final String code;

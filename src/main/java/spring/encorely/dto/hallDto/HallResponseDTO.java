@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-//
 public class HallResponseDTO {
 
     @Builder
@@ -28,5 +27,4 @@ public class HallResponseDTO {
         String address;
         Integer ranking;
     }
-
 }

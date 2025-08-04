@@ -113,6 +113,9 @@ public class UserService {
                 .following(followUser)
                 .build();
 
+        user.setFollowings(user.getFollowings() + 1);
+        followUser.setFollowers(followUser.getFollowers() + 1);
+
         userFollowRepository.save(userFollow);
     }
 
@@ -172,6 +175,9 @@ public class UserService {
     public void unfollowUser(Long id, Long userId) {
         User user = findById(id);
         User followUser = findById(userId);
+
+        user.setFollowings(user.getFollowings() - 1);
+        followUser.setFollowers(followUser.getFollowers() - 1);
 
         userFollowRepository.deleteByFollowerAndFollowing(user, followUser);
     }

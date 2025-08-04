@@ -67,6 +67,8 @@ public class ReviewService {
         restaurantService.saveRestaurant(review, request.getRestaurantInfos());
         facilityService.saveFacility(review, request.getFacilityInfos());
 
+        user.setViewedShowCount(user.getViewedShowCount() + 1);
+
         return new ReviewResponseDTO.CreateReview(review.getId(), review.getCreatedAt());
     }
 
@@ -148,9 +150,11 @@ public class ReviewService {
     }
 
     @Transactional
-    public void deleteReview(Long reviewId) {
+    public void deleteReview(Long reviewId, Long userId) {
         Review review = findById(reviewId);
+        User user = userService.findById(userId);
         reviewImageService.deleteAllImages(review);
+        user.setViewedShowCount(user.getViewedShowCount() - 1);
         reviewRepository.delete(review);
     }
 

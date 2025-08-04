@@ -63,9 +63,9 @@ public class ReviewController {
     @DeleteMapping("/{reviewId}")
     @Operation(summary = "리뷰 삭제")
     public ApiResponse<String> deleteReview(
-            @PathVariable Long reviewId
+            @PathVariable Long reviewId, @AuthenticationPrincipal UserDetails userDetails
     ) {
-        reviewService.deleteReview(reviewId);
+        reviewService.deleteReview(reviewId, Long.parseLong(userDetails.getUsername()));
         return ApiResponse.onSuccess("리뷰가 삭제되었습니다.");
     }
 

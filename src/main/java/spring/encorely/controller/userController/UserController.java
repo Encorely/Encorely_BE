@@ -99,4 +99,10 @@ public class UserController {
         }
     }
 
+    @GetMapping("/userRanking")
+    @Operation(summary = "인기 사용자 불러오기")
+    public ApiResponse<List<UserResponseDTO.PopularUserInfo>> getPopularUsers() {
+        return ApiResponse.onSuccess(userService.getPopularUsers());
+    }
+
 }

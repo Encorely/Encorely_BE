@@ -109,4 +109,17 @@ public class UserResponseDTO {
 
     }
 
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PopularUserInfo {
+
+        Long userId;
+        String nickname;
+        String imageUrl;
+        String instruction;
+
+    }
+
 }

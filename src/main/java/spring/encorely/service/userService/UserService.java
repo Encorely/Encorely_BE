@@ -2,6 +2,7 @@ package spring.encorely.service.userService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import spring.encorely.apiPayload.code.status.ErrorStatus;
 import spring.encorely.apiPayload.exception.handler.UserHandler;
@@ -18,9 +19,12 @@ import spring.encorely.repository.userRepository.UserBlockRepository;
 import spring.encorely.repository.userRepository.UserFollowRepository;
 import spring.encorely.repository.userRepository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -253,6 +257,27 @@ public class UserService {
         if (request.getLink() != null) {
             user.setLink(request.getLink());
         }
+    }
+
+    public List<UserResponseDTO.PopularUserInfo> getPopularUsers() {
+        LocalDateTime oneWeekAgo = LocalDateTime.now().minusDays(7);
+        List<Long> userIds = userFollowRepository.findTopFollowedUsersSince(oneWeekAgo, PageRequest.of(0, 6));
+
+        List<User> users = userRepository.findAllById(userIds);
+
+        Map<Long, User> userMap = users.stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+
+        return userIds.stream()
+                .map(id -> {
+                    User user = userMap.get(id);
+                    return UserResponseDTO.PopularUserInfo.builder()
+                            .userId(user.getId())
+                            .nickname(user.getNickname())
+                            .imageUrl(user.getImageUrl())
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 
     public boolean checkNicknameDuplicate(String nickname) {

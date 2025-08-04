@@ -113,4 +113,10 @@ public class ReviewController {
         return ApiResponse.onSuccess(Map.of("hasLiked", hasLiked));
     }
 
+    @GetMapping("/reviewRanking")
+    @Operation(summary = "화제의 후기들")
+    public ApiResponse<List<ReviewResponseDTO.PopularReviewInfo>> getPopularReviews() {
+        return ApiResponse.onSuccess(reviewService.getPopularReviews());
+    }
+
 }

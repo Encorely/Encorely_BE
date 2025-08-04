@@ -95,6 +95,9 @@ public class Review extends BaseEntity {
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Like> likeList = new ArrayList<>();
 
+    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ReviewStats> reviewStatsList = new ArrayList<>();
+
     public void incrementLikeCount() {
         this.likeCount++;
     }

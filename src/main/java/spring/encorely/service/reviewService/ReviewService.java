@@ -2,21 +2,26 @@ package spring.encorely.service.reviewService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import spring.encorely.apiPayload.code.status.ErrorStatus;
 import spring.encorely.apiPayload.exception.handler.ReviewHandler;
 import spring.encorely.domain.enums.ReviewImageType;
 import spring.encorely.domain.hall.Hall;
+import spring.encorely.domain.review.PopularReviewCache;
 import spring.encorely.domain.review.Review;
 import spring.encorely.domain.review.ReviewImage;
 import spring.encorely.domain.user.User;
 import spring.encorely.dto.reviewDto.ReviewRequestDTO;
 import spring.encorely.dto.reviewDto.ReviewResponseDTO;
 import spring.encorely.exception.NotFoundException;
+import spring.encorely.repository.reviewRepository.PopularReviewCacheRepository;
 import spring.encorely.repository.reviewRepository.ReviewRepository;
+import spring.encorely.repository.reviewRepository.ReviewStatsRepository;
 import spring.encorely.service.hallService.HallService;
 import spring.encorely.service.userService.UserService;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -30,6 +35,8 @@ public class ReviewService {
     private final UserKeywordsService userKeywordsService;
     private final RestaurantService restaurantService;
     private final FacilityService facilityService;
+    private final ReviewStatsRepository reviewStatsRepository;
+    private final PopularReviewCacheRepository popularReviewCacheRepository;
 
     public Review findById(Long id) {
         return reviewRepository.findById(id).orElseThrow(() -> new ReviewHandler(ErrorStatus.REVIEW_NOT_FOUND));
@@ -156,6 +163,26 @@ public class ReviewService {
         reviewImageService.deleteAllImages(review);
         user.setViewedShowCount(user.getViewedShowCount() - 1);
         reviewRepository.delete(review);
+    }
+
+    public List<ReviewResponseDTO.PopularReviewInfo> getPopularReviews() {
+        List<PopularReviewCache> cached = popularReviewCacheRepository.findAll();
+
+        return cached.stream().map(entry -> {
+            Review review = entry.getReview();
+            String showImageUrl = review.getReviewImageList().stream()
+                    .filter(img -> img.getType() == ReviewImageType.SHOW)
+                    .map(ReviewImage::getImageUrl)
+                    .findFirst()
+                    .orElse(null);
+
+            return ReviewResponseDTO.PopularReviewInfo.builder()
+                    .reviewId(review.getId())
+                    .reviewImageUrl(showImageUrl)
+                    .userProfileImageUrl(review.getUser().getImageUrl())
+                    .nickname(review.getUser().getNickname())
+                    .build();
+        }).toList();
     }
 
 }

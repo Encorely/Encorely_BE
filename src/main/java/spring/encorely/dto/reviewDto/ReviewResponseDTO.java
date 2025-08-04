@@ -109,4 +109,16 @@ public class ReviewResponseDTO {
         String tips;
     }
 
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PopularReviewInfo {
+        Long reviewId;
+        String reviewImageUrl;
+        String userProfileImageUrl;
+        String nickname;
+        String comment;
+    }
+
 }

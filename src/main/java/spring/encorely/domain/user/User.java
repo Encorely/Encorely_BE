@@ -9,6 +9,7 @@ import spring.encorely.domain.common.BaseEntity;
 import spring.encorely.domain.enums.Role;
 import spring.encorely.domain.enums.Status;
 import spring.encorely.domain.like.Like;
+import spring.encorely.domain.notification.Notification;
 import spring.encorely.domain.review.Review;
 import spring.encorely.listener.UserEntityListener;
 
@@ -93,5 +94,11 @@ public class User extends BaseEntity {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> commentList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> receiverList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> senderList = new ArrayList<>();
 
 }

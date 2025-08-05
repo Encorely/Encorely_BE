@@ -35,4 +35,5 @@ public class Hall extends BaseEntity {
 
     @Column(nullable = false)
     private Integer clickCount = 0;
+
 }

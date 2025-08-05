@@ -13,6 +13,7 @@ import spring.encorely.domain.enums.Role;
 import spring.encorely.domain.enums.Status;
 import spring.encorely.domain.user.User;
 import spring.encorely.repository.userRepository.UserRepository;
+import spring.encorely.service.scrapService.ScrapFileService;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,6 +25,7 @@ import java.util.Map;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final ScrapFileService scrapFileService;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -58,7 +60,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                             .status(Status.ACTIVE)
                             .build()
             );
+            scrapFileService.createDefaultFile(user);
         }
+
         Map<String, Object> mappedAttributes = new HashMap<>(attributes);
         mappedAttributes.put("id", String.valueOf(user.getId()));
 

@@ -8,6 +8,7 @@ import spring.encorely.domain.comment.Comment;
 import spring.encorely.domain.common.BaseEntity;
 import spring.encorely.domain.hall.Hall;
 import spring.encorely.domain.like.Like;
+import spring.encorely.domain.notification.Notification;
 import spring.encorely.domain.user.User;
 
 import java.util.*;
@@ -97,6 +98,9 @@ public class Review extends BaseEntity {
 
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReviewStats> reviewStatsList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> notificationList = new ArrayList<>();
 
     public void incrementLikeCount() {
         this.likeCount++;

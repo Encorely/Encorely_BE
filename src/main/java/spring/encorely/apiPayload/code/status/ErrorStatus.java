@@ -45,8 +45,14 @@ public enum ErrorStatus implements BaseErrorCode {
     FACILITY_NOT_FOUND(HttpStatus.BAD_REQUEST, "FACILITY4001", "존재하지 않는 편의시설입니다."),
 
     // 스크랩 관련 에러
-    SCRAP_FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "SCRAPFILE4001", "존재하지 않는 파일입니다."),
-    SCRAP_FILE_NAME_DUPLICATION(HttpStatus.CONFLICT, "FILE4002", "이미 존재하는 이름입니다");
+    SCRAP_FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "SCRAP4001", "존재하지 않는 파일입니다."),
+    SCRAP_FILE_NAME_DUPLICATION(HttpStatus.CONFLICT, "SCRAP4002", "이미 존재하는 이름입니다."),
+    SCRAP_REVIEW_NOT_FOUND(HttpStatus.CONFLICT, "SCRAP4003", "스크랩된 리뷰가 없습니다."),
+    DEFAULT_SCRAP_FILE_NOT_FOUND(HttpStatus.CONFLICT, "SCRAP4003", "기본 스크랩 폴더가 없습니다."),
+
+    // 알림 관련 에러
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION4001", "존재하지 않는 알림입니다."),
+    NOTIFICATION_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION4002", "존재하지 않는 알림 타입입니다.");
 
     private final HttpStatus httpStatus;
     private final String code;

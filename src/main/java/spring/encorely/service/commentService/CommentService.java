@@ -6,11 +6,13 @@ import org.springframework.transaction.annotation.Transactional;
 import spring.encorely.apiPayload.code.status.ErrorStatus;
 import spring.encorely.apiPayload.exception.handler.CommentHandler;
 import spring.encorely.domain.comment.Comment;
+import spring.encorely.domain.enums.NotificationType;
 import spring.encorely.domain.review.Review;
 import spring.encorely.domain.user.User;
 import spring.encorely.dto.commentDto.CommentRequestDto;
 import spring.encorely.dto.commentDto.CommentResponseDto;
 import spring.encorely.repository.commentRepository.CommentRepository;
+import spring.encorely.service.notificationService.NotificationService;
 import spring.encorely.service.reviewService.ReviewService;
 import spring.encorely.service.userService.UserService;
 
@@ -25,6 +27,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final UserService userService;
     private final ReviewService reviewService;
+    private final NotificationService notificationService;
 
     public Comment findById(Long id) {
         return commentRepository.findById(id).orElseThrow(() -> new CommentHandler(ErrorStatus.COMMENT_NOT_FOUND));
@@ -44,6 +47,8 @@ public class CommentService {
                 .build();
 
         commentRepository.save(comment);
+        notificationService.createNotification(author, review, NotificationType.COMMENT, null);
+
     }
 
     public List<CommentResponseDto> getCommentsForReview(Long reviewId, Long currentUserId) {

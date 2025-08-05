@@ -3,10 +3,12 @@ package spring.encorely.service.likeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import spring.encorely.domain.enums.NotificationType;
 import spring.encorely.domain.like.Like;
 import spring.encorely.domain.review.Review;
 import spring.encorely.domain.user.User;
 import spring.encorely.repository.likeRepository.LikeRepository;
+import spring.encorely.service.notificationService.NotificationService;
 import spring.encorely.service.reviewService.ReviewService;
 import spring.encorely.service.userService.UserService;
 
@@ -20,6 +22,7 @@ public class LikeService {
     private final LikeRepository likeRepository;
     private final UserService userService;
     private final ReviewService reviewService;
+    private final NotificationService notificationService;
 
     @Transactional
     public boolean toggleLike(Long userId, Long reviewId) {
@@ -41,6 +44,7 @@ public class LikeService {
             Like newLike = new Like(user, review);
             likeRepository.save(newLike);
             review.incrementLikeCount();
+            notificationService.createNotification(user, review, NotificationType.LIKE, null);
             return true; // 좋아요 추가됨
         }
     }

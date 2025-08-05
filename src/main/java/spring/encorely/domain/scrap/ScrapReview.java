@@ -8,6 +8,7 @@ import spring.encorely.domain.review.Review;
 
 @Entity
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor

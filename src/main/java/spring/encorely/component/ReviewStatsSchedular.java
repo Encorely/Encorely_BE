@@ -1,4 +1,4 @@
-package spring.encorely.schedular;
+package spring.encorely.component;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -7,12 +7,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import spring.encorely.domain.review.PopularReviewCache;
 import spring.encorely.domain.review.Review;
-import spring.encorely.domain.review.ReviewStats;
 import spring.encorely.repository.reviewRepository.PopularReviewCacheRepository;
 import spring.encorely.repository.reviewRepository.ReviewRepository;
 import spring.encorely.repository.reviewRepository.ReviewStatsRepository;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 

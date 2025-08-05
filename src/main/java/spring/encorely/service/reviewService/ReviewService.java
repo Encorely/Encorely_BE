@@ -2,16 +2,20 @@ package spring.encorely.service.reviewService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import spring.encorely.apiPayload.code.status.ErrorStatus;
 import spring.encorely.apiPayload.exception.handler.ReviewHandler;
 import spring.encorely.apiPayload.exception.handler.UserHandler;
+import spring.encorely.domain.enums.ReviewImageCategory;
 import spring.encorely.domain.hall.Hall;
 import spring.encorely.domain.review.Review;
 import spring.encorely.domain.review.ReviewImage;
 import spring.encorely.domain.user.User;
 import spring.encorely.dto.reviewDto.ReviewRequestDTO;
 import spring.encorely.dto.reviewDto.ReviewResponseDTO;
+import spring.encorely.repository.reviewRepository.ReviewImageRepository;
 import spring.encorely.repository.reviewRepository.ReviewRepository;
 import spring.encorely.service.hallService.HallService;
 import spring.encorely.service.userService.UserService;
@@ -27,6 +31,7 @@ public class ReviewService {
     private final UserKeywordsService userKeywordsService;
     private final RestaurantService restaurantService;
     private final FacilityService facilityService;
+    private final ReviewImageRepository reviewImageRepository;
 
     public Review findById(Long id) {
         return reviewRepository.findById(id).orElseThrow(() -> new ReviewHandler(ErrorStatus.REVIEW_NOT_FOUND));
@@ -62,5 +67,28 @@ public class ReviewService {
 
         return new ReviewResponseDTO.CreateReview(review.getId(), review.getCreatedAt());
     }
+
+    public Page<ReviewResponseDTO.ViewReview> getSeatReviewList(Long hallId, ReviewImageCategory category, Pageable pageable) {
+        return reviewRepository.findByHallId(hallId, pageable)
+                .map(r -> ReviewResponseDTO.ViewReview.builder()
+                        .reviewId(r.getId())
+                        .showName(r.getShowName())
+                        .artistName(r.getArtistName())
+                        .seatArea(r.getSeatArea())
+                        .seatRow(r.getSeatRow())
+                        .seatNumber(r.getSeatNumber())
+                        .rating(r.getRating())
+                        .scrapCount(r.getScrapCount())
+                        .commentCount(r.getCommentCount())
+                        .viewCount(r.getViewCount())
+                        .thumbnailImageUrl(
+                                reviewImageRepository
+                                        .findTopByReviewIdAndCategoryOrderByCreatedAtAsc(r.getId(), category)
+                                        .map(ReviewImage::getImageUrl)
+                                        .orElse(null)
+                        )
+                        .build());
+    }
+
 
 }

@@ -28,4 +28,22 @@ public class ReviewResponseDTO {
         LocalDateTime createdAt;
     }
 
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ViewReview {
+        private Long reviewId;
+        private String showName;
+        private String artistName;
+        private String seatArea;
+        private String seatRow;
+        private String seatNumber;
+        private Float rating;
+        private int scrapCount;
+        private int commentCount;
+        private int viewCount;
+        private String thumbnailImageUrl;
+    }
+
 }

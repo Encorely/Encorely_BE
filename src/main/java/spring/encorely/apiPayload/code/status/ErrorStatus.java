@@ -53,7 +53,10 @@ public enum ErrorStatus implements BaseErrorCode {
     // 알림 관련 에러
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION4001", "존재하지 않는 알림입니다."),
     NOTIFICATION_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION4002", "존재하지 않는 알림 타입입니다."),
-    NOTIFICATION_SETTING_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION4003", "존재하지 않는 알림 설정입니다.");
+    NOTIFICATION_SETTING_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION4003", "존재하지 않는 알림 설정입니다."),
+
+    // 공연 관련 에러
+    SHOW_NOT_FOUND(HttpStatus.NOT_FOUND, "SHOW4003", "존재하지 않는 공연입니다.");
 
     private final HttpStatus httpStatus;
     private final String code;

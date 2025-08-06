@@ -1,15 +1,11 @@
-package spring.encorely.domain.hall;
+package spring.encorely.domain.show;
 
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import spring.encorely.domain.common.BaseEntity;
-import spring.encorely.domain.review.Review;
-import spring.encorely.domain.show.Show;
-
-import java.util.ArrayList;
-import java.util.List;
+import spring.encorely.domain.hall.Hall;
 
 @Entity
 @Getter
@@ -19,28 +15,32 @@ import java.util.List;
 @AllArgsConstructor
 @DynamicUpdate
 @DynamicInsert
-public class Hall extends BaseEntity {
+@Table(name = "shows")
+public class Show extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(mappedBy = "hall", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Review review;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Hall hall;
 
     @Column(nullable = false)
     private String name;
 
     @Column(nullable = false)
-    private String address;
+    private String period;
 
     @Column(nullable = false)
     private String imageUrl;
 
     @Column(nullable = false)
-    private Integer clickCount = 0;
+    private String bookingDate;
 
-    @OneToMany(mappedBy = "hall", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Show> showList = new ArrayList<>();
+    @Column(nullable = false)
+    private Integer age;
+
+    @Column(nullable = false)
+    private String link;
 
 }

@@ -1,6 +1,7 @@
 package spring.encorely.controller.userController;
 
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -10,6 +11,8 @@ import spring.encorely.apiPayload.ApiResponse;
 import spring.encorely.dto.userDto.CommonResponseDto;
 import spring.encorely.dto.userDto.UserRequestDTO;
 import spring.encorely.dto.userDto.UserResponseDTO;
+import spring.encorely.service.notificationService.NotificationService;
+import spring.encorely.service.notificationService.UserNotificationSettingService;
 import spring.encorely.service.userService.UserService;
 
 import java.util.List;
@@ -103,6 +106,14 @@ public class UserController {
     @Operation(summary = "인기 사용자 불러오기")
     public ApiResponse<List<UserResponseDTO.PopularUserInfo>> getPopularUsers() {
         return ApiResponse.onSuccess(userService.getPopularUsers());
+    }
+
+    @DeleteMapping
+    @Operation(summary = "회원탈퇴")
+    public ApiResponse<String> deleteUser(@AuthenticationPrincipal UserDetails userDetails,
+                                          HttpServletRequest request) {
+        userService.deleteUser(Long.parseLong(userDetails.getUsername()), request);
+        return ApiResponse.onSuccess("탈퇴가 완료되었습니다.");
     }
 
 }

@@ -1,5 +1,5 @@
 package spring.encorely.domain.enums;
 
-public enum Type {
+public enum KeywordsType {
     CONS, PROS, RESTAURANT
 }

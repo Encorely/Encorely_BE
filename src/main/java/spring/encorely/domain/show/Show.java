@@ -7,6 +7,8 @@ import org.hibernate.annotations.DynamicUpdate;
 import spring.encorely.domain.common.BaseEntity;
 import spring.encorely.domain.hall.Hall;
 
+import java.time.LocalDate;
+
 @Entity
 @Getter
 @Setter
@@ -29,7 +31,10 @@ public class Show extends BaseEntity {
     private String name;
 
     @Column(nullable = false)
-    private String period;
+    private LocalDate startDate;
+
+    @Column(nullable = false)
+    private LocalDate endDate;
 
     @Column(nullable = false)
     private String imageUrl;

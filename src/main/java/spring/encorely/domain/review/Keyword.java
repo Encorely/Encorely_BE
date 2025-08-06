@@ -5,7 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import spring.encorely.domain.common.BaseEntity;
-import spring.encorely.domain.enums.Type;
+import spring.encorely.domain.enums.KeywordsType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +29,7 @@ public class Keyword extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private Type type;
+    private KeywordsType keywordsType;
 
     @OneToMany(mappedBy = "keyword", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserKeywords> userKeywordsList  = new ArrayList<>();

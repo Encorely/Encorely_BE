@@ -1,11 +1,14 @@
 package spring.encorely.service.userService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import spring.encorely.apiPayload.code.status.ErrorStatus;
 import spring.encorely.apiPayload.exception.handler.UserHandler;
+import spring.encorely.config.jwt.JwtTokenUtil;
 import spring.encorely.domain.enums.ReviewImageType;
 import spring.encorely.domain.review.Review;
 import spring.encorely.domain.review.ReviewImage;
@@ -24,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -36,6 +40,8 @@ public class UserService {
     private final UserFollowRepository UserFollowRepository;
     private final UserBlockRepository userBlockRepository;
     private final UserFollowRepository userFollowRepository;
+    private final ValueOperations<String, String> redisOps;
+    private final JwtTokenUtil jwtTokenUtil;
 
     public User findById(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
@@ -282,6 +288,26 @@ public class UserService {
 
     public boolean checkNicknameDuplicate(String nickname) {
         return userRepository.existsByNickname(nickname);
+    }
+
+    @Transactional
+    public void deleteUser(Long userId, HttpServletRequest request) {
+        User user = findById(userId);
+
+        String refreshToken = redisOps.get(String.valueOf(userId));
+
+        if (refreshToken != null) {
+            Long expiration = jwtTokenUtil.getExpiration(refreshToken);
+            redisOps.getOperations().opsForValue().set("BLACKLIST" + refreshToken, "logout", expiration, TimeUnit.SECONDS);
+        }
+
+        String accessToken = jwtTokenUtil.extractAccessTokenFromCookie(request);
+        if (accessToken != null) {
+            Long expiration = jwtTokenUtil.getExpiration(accessToken);
+            redisOps.getOperations().opsForValue().set("BLACKLIST" + accessToken, "logout", expiration, TimeUnit.SECONDS);
+        }
+
+        userRepository.delete(user);
     }
 
 }

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import spring.encorely.domain.enums.NotificationSettingType;
 
 import java.util.Date;
 import java.util.List;
@@ -119,6 +120,20 @@ public class UserResponseDTO {
         String nickname;
         String imageUrl;
         String instruction;
+
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserNotificationSetting {
+
+        Long settingId;
+        String type;
+        String title;
+        String description;
+        boolean enabled;
 
     }
 

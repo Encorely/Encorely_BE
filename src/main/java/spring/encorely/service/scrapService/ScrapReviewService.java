@@ -34,7 +34,7 @@ public class ScrapReviewService {
                     ReviewImageCategory targetCategory = mapToImageCategory(scrapReview.getCategory());
 
                     List<String> imageUrls = reviewImageRepository
-                            .findAllByReviewAndUsedTrue(review)
+                            .findAllByReviewAndUsedIsTrue(review)
                             .stream()
                             .sorted((i1, i2) -> {
                                 boolean i1Matches = mathcesPriority(targetCategory, i1);

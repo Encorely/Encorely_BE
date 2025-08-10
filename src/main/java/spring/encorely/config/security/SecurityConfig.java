@@ -41,7 +41,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers(HttpMethod.GET, "/api/users/nickname/duplicate", "/api/users/userRanking").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/reviews/{reviewId}/**", "/api/reviews/reviewRanking").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/{reviewId}/**", "/api/reviews/reviewRanking",
+                                "/api/reviews/views/**").permitAll()
                         .requestMatchers("/api/addresses/**", "/api/auth/**", "/api/notifications/**", "/api/notification-settings/**",
                                 "/api/s3/**", "/api/files/**", "/api/users/**").hasRole("USER")
                         .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**", "/auth/**", "/oauth2/**", "/login/**",

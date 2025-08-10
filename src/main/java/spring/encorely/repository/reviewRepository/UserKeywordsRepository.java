@@ -14,4 +14,5 @@ public interface UserKeywordsRepository extends JpaRepository<UserKeywords, Long
     List<UserKeywords> findAllByReviewOrderByCreatedAtAsc(Review review);
     List<UserKeywords> findAllByRestaurantOrderByCreatedAtAsc(Restaurant restaurant);
     Optional<UserKeywords> findTop1ByReviewOrderByCreatedAtAsc(Review review);
+    List<UserKeywords> findAllByReviewIdIn(List<Long> reviewIds);
 }

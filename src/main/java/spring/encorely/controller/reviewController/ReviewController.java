@@ -3,12 +3,17 @@ package spring.encorely.controller.reviewController;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import spring.encorely.apiPayload.ApiResponse;
 import spring.encorely.dto.commentDto.CommentRequestDto;
 import spring.encorely.dto.commentDto.CommentResponseDto;
+import spring.encorely.domain.enums.ReviewImageCategory;
 import spring.encorely.dto.reviewDto.ReviewRequestDTO;
 import spring.encorely.dto.reviewDto.ReviewResponseDTO;
 import spring.encorely.service.commentService.CommentService;
@@ -117,6 +122,21 @@ public class ReviewController {
     @Operation(summary = "화제의 후기들")
     public ApiResponse<List<ReviewResponseDTO.PopularReviewInfo>> getPopularReviews() {
         return ApiResponse.onSuccess(reviewService.getPopularReviews());
+    }
+
+    @GetMapping("/views/{hallId}")
+    @Operation(summary = "공연장별 시야 후기 목록 조회 API")
+    public ApiResponse<Page<ReviewResponseDTO.ViewReview>> getSeatReviewList(@PathVariable Long hallId,
+                                                                             @RequestParam(required = false) String seatArea,
+                                                                             @RequestParam(required = false) String seatRow,
+                                                                             @RequestParam(required = false) String seatNumber,
+                                                                             @RequestParam(defaultValue = "0") int page,
+                                                                             @RequestParam(defaultValue = "10") int size,
+                                                                             @RequestParam(defaultValue = "createdAt,DESC") String sort,
+                                                                             @RequestParam(defaultValue = "REVIEW") ReviewImageCategory category) {
+        Page<ReviewResponseDTO.ViewReview> response = reviewService.getSeatReviewList
+                (hallId, seatArea, seatRow, seatNumber, category, sort, page, size);
+        return ApiResponse.onSuccess(response);
     }
 
 }

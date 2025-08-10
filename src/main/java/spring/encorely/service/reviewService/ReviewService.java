@@ -3,26 +3,33 @@ package spring.encorely.service.reviewService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import spring.encorely.apiPayload.code.status.ErrorStatus;
 import spring.encorely.apiPayload.exception.handler.ReviewHandler;
 import spring.encorely.domain.enums.ReviewImageType;
+import spring.encorely.apiPayload.exception.handler.UserHandler;
+import spring.encorely.domain.enums.ReviewImageCategory;
 import spring.encorely.domain.hall.Hall;
 import spring.encorely.domain.review.PopularReviewCache;
 import spring.encorely.domain.review.Review;
 import spring.encorely.domain.review.ReviewImage;
+import spring.encorely.domain.review.UserKeywords;
 import spring.encorely.domain.user.User;
 import spring.encorely.dto.reviewDto.ReviewRequestDTO;
 import spring.encorely.dto.reviewDto.ReviewResponseDTO;
 import spring.encorely.exception.NotFoundException;
-import spring.encorely.repository.reviewRepository.PopularReviewCacheRepository;
-import spring.encorely.repository.reviewRepository.ReviewRepository;
-import spring.encorely.repository.reviewRepository.ReviewStatsRepository;
+import spring.encorely.repository.reviewRepository.*;
 import spring.encorely.service.hallService.HallService;
 import spring.encorely.service.userService.UserService;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +44,8 @@ public class ReviewService {
     private final FacilityService facilityService;
     private final ReviewStatsRepository reviewStatsRepository;
     private final PopularReviewCacheRepository popularReviewCacheRepository;
+    private final ReviewImageRepository reviewImageRepository;
+    private final UserKeywordsRepository userKeywordsRepository;
 
     public Review findById(Long id) {
         return reviewRepository.findById(id).orElseThrow(() -> new ReviewHandler(ErrorStatus.REVIEW_NOT_FOUND));
@@ -183,6 +192,46 @@ public class ReviewService {
                     .nickname(review.getUser().getNickname())
                     .build();
         }).toList();
+    }
+
+    public Page<ReviewResponseDTO.ViewReview> getSeatReviewList(Long hallId, String seatArea, String seatRow, String seatNumber,
+                                                                ReviewImageCategory category, String sort, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Review> reviews = reviewRepository.findByFilters(hallId, seatArea, seatRow, seatNumber, sort, pageable);
+        List<Long> reviewIds = reviews.stream().map(Review::getId).collect(Collectors.toList());
+        List<ReviewImage> images = reviewImageRepository.findAllByReviewIdInAndCategoryAndTypeAndUsedIsTrue(
+                reviewIds, category, ReviewImageType.VIEW
+        );
+        Map<Long, List<String>> reviewImagesMap = images.stream()
+                .collect(Collectors.groupingBy(
+                        ri -> ri.getReview().getId(),
+                        Collectors.mapping(ReviewImage::getImageUrl, Collectors.toList())
+                ));
+        List<UserKeywords> userKeywords = userKeywordsRepository.findAllByReviewIdIn(reviewIds);
+        Map<Long, List<String>> reviewKeywordsMap = userKeywords.stream()
+                .collect(Collectors.groupingBy(
+                        uk -> uk.getReview().getId(),
+                        Collectors.mapping(uk -> uk.getKeyword().getContent(), Collectors.toList())
+                ));
+
+        return reviews.map(r -> ReviewResponseDTO.ViewReview.builder()
+                .reviewId(r.getId())
+                .userId(r.getUser().getId())
+                .userImageUrl(r.getUser().getImageUrl())
+                .hallName(r.getHall().getName())
+                .seatArea(r.getSeatArea())
+                .seatRow(r.getSeatRow())
+                .seatNumber(r.getSeatNumber())
+                .rating(r.getRating())
+                .scrapCount(r.getScrapCount())
+                .commentCount(r.getCommentCount())
+                .likeCount(r.getLikeCount())
+                .imageUrls(reviewImagesMap.getOrDefault(r.getId(), Collections.emptyList()))
+                .showDetail(r.getShowDetail())
+                .keywords(reviewKeywordsMap.getOrDefault(r.getId(), Collections.emptyList()))
+                .numOfKeywords(reviewKeywordsMap.getOrDefault(r.getId(), Collections.emptyList()).size())
+                .build()
+        );
     }
 
 }

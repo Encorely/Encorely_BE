@@ -14,7 +14,8 @@ import java.util.Optional;
 @Repository
 public interface ReviewImageRepository extends JpaRepository<ReviewImage, Long> {
     Optional<ReviewImage> findByImageUrl(String imageUrl);
-    List<ReviewImage> findAllByReviewAndType(Review review, ReviewImageType type);
-    ReviewImage findByRestaurant(Restaurant restaurant);
-    ReviewImage findByFacility(Facility facility);
+    List<ReviewImage> findAllByReviewAndTypeAndUsedIsTrue(Review review, ReviewImageType type);
+    ReviewImage findByRestaurantAndUsedIsTrue(Restaurant restaurant);
+    ReviewImage findByFacilityAndUsedIsTrue(Facility facility);
+    List<ReviewImage> findAllByReviewAndUsedTrue(Review review);
 }

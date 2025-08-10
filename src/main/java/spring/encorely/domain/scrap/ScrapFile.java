@@ -32,6 +32,9 @@ public class ScrapFile extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Column(nullable = false)
+    private boolean isDefault = false;
+
     public void changeName(String newName) {
         this.name = newName;
     }

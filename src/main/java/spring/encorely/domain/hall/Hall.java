@@ -6,6 +6,10 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import spring.encorely.domain.common.BaseEntity;
 import spring.encorely.domain.review.Review;
+import spring.encorely.domain.show.Show;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -35,4 +39,8 @@ public class Hall extends BaseEntity {
 
     @Column(nullable = false)
     private Integer clickCount = 0;
+
+    @OneToMany(mappedBy = "hall", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Show> showList = new ArrayList<>();
+
 }

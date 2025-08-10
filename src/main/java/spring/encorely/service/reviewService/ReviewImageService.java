@@ -5,14 +5,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import spring.encorely.apiPayload.code.status.ErrorStatus;
 import spring.encorely.apiPayload.exception.handler.ReviewHandler;
-import spring.encorely.apiPayload.exception.handler.UserHandler;
 import spring.encorely.domain.enums.ReviewImageCategory;
 import spring.encorely.domain.enums.ReviewImageType;
 import spring.encorely.domain.review.Facility;
 import spring.encorely.domain.review.Restaurant;
 import spring.encorely.domain.review.Review;
 import spring.encorely.domain.review.ReviewImage;
-import spring.encorely.domain.user.User;
 import spring.encorely.dto.reviewDto.ReviewRequestDTO;
 import spring.encorely.dto.reviewDto.ReviewResponseDTO;
 import spring.encorely.repository.reviewRepository.ReviewImageRepository;
@@ -124,7 +122,7 @@ public class ReviewImageService {
 
     public List<ReviewResponseDTO.Image> getImages(ReviewImageType type, Review review) {
         List<ReviewResponseDTO.Image> dtos = new ArrayList<>();
-        List<ReviewImage> reviewImages = reviewImageRepository.findAllByReviewAndType(review, type);
+        List<ReviewImage> reviewImages = reviewImageRepository.findAllByReviewAndTypeAndUsedIsTrue(review, type);
 
         for (ReviewImage reviewImage : reviewImages) {
             ReviewResponseDTO.Image dto = ReviewResponseDTO.Image.builder()
@@ -141,8 +139,8 @@ public class ReviewImageService {
     public ReviewResponseDTO.Image getImage(Restaurant restaurant, Facility facility) {
         ReviewImage reviewImage = null;
         if (restaurant != null) {
-            reviewImage = reviewImageRepository.findByRestaurant(restaurant);
-        } else reviewImage = reviewImageRepository.findByFacility(facility);
+            reviewImage = reviewImageRepository.findByRestaurantAndUsedIsTrue(restaurant);
+        } else reviewImage = reviewImageRepository.findByFacilityAndUsedIsTrue(facility);
 
         return ReviewResponseDTO.Image.builder()
                 .imageId(reviewImage.getId())

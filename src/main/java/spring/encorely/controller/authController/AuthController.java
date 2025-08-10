@@ -1,5 +1,6 @@
 package spring.encorely.controller.authController;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("logout")
+    @Operation(summary = "로그아웃")
     public ApiResponse<String> logout(@AuthenticationPrincipal UserDetails userDetails,
                                       HttpServletRequest request, HttpServletResponse response) {
         authService.logout(request, response, userDetails.getUsername());

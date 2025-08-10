@@ -33,8 +33,30 @@ public enum ErrorStatus implements BaseErrorCode {
     KEYWORDS_NOT_FOUND(HttpStatus.BAD_REQUEST, "REVIEW4003", "존재하지 않는 키워드입니다."),
 
     // 공연장 관련 에러
-    HALL_NOT_FOUND(HttpStatus.BAD_REQUEST, "HALL4001", "존재하지 않는 공연장입니다.");
+    HALL_NOT_FOUND(HttpStatus.BAD_REQUEST, "HALL4001", "존재하지 않는 공연장입니다."),
 
+    // 댓글 관련 에러
+    COMMENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "COMMENT4001", "존재하지 않는 댓글입니다."),
+
+    // 식당 관련 에러
+    RESTAURANT_NOT_FOUND(HttpStatus.BAD_REQUEST, "RESTAURANT4001", "존재하지 않는 식당입니다."),
+
+    // 편의시설 관련 에러
+    FACILITY_NOT_FOUND(HttpStatus.BAD_REQUEST, "FACILITY4001", "존재하지 않는 편의시설입니다."),
+
+    // 스크랩 관련 에러
+    SCRAP_FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "SCRAP4001", "존재하지 않는 파일입니다."),
+    SCRAP_FILE_NAME_DUPLICATION(HttpStatus.CONFLICT, "SCRAP4002", "이미 존재하는 이름입니다."),
+    SCRAP_REVIEW_NOT_FOUND(HttpStatus.CONFLICT, "SCRAP4003", "스크랩된 리뷰가 없습니다."),
+    DEFAULT_SCRAP_FILE_NOT_FOUND(HttpStatus.CONFLICT, "SCRAP4003", "기본 스크랩 폴더가 없습니다."),
+
+    // 알림 관련 에러
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION4001", "존재하지 않는 알림입니다."),
+    NOTIFICATION_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION4002", "존재하지 않는 알림 타입입니다."),
+    NOTIFICATION_SETTING_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION4003", "존재하지 않는 알림 설정입니다."),
+
+    // 공연 관련 에러
+    SHOW_NOT_FOUND(HttpStatus.NOT_FOUND, "SHOW4003", "존재하지 않는 공연입니다.");
 
     private final HttpStatus httpStatus;
     private final String code;

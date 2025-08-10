@@ -7,11 +7,13 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import spring.encorely.domain.review.ReviewImage;
 import spring.encorely.dto.s3Dto.S3ResponseDTO;
 
 import java.net.URI;
 import java.net.URL;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -46,6 +48,14 @@ public class S3Service {
         URI uri = URI.create(imageUrl);
         String key = uri.getPath().substring(1);
         s3Client.deleteObject(bucket, key);
+    }
+
+    public void deleteAllImages(List<ReviewImage> images) {
+        for (ReviewImage image : images) {
+            URI uri = URI.create(image.getImageUrl());
+            String key = uri.getPath().substring(1);
+            s3Client.deleteObject(bucket, key);
+        }
     }
 
 }

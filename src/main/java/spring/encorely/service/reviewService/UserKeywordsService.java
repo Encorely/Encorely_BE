@@ -7,8 +7,10 @@ import spring.encorely.domain.review.Keyword;
 import spring.encorely.domain.review.Restaurant;
 import spring.encorely.domain.review.Review;
 import spring.encorely.domain.review.UserKeywords;
+import spring.encorely.dto.reviewDto.ReviewResponseDTO;
 import spring.encorely.repository.reviewRepository.UserKeywordsRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -44,6 +46,28 @@ public class UserKeywordsService {
 
             userKeywordsRepository.save(userKeywords);
         }
+    }
+
+    public List<ReviewResponseDTO.Keyword> getKeywords(Review review, Restaurant restaurant) {
+        List<ReviewResponseDTO.Keyword> dtos = new ArrayList<>();
+        List<UserKeywords> userKeywords = new ArrayList<>();
+
+        if (review != null) {
+            userKeywords = userKeywordsRepository.findAllByReviewOrderByCreatedAtAsc(review);
+        } else {
+            userKeywords = userKeywordsRepository.findAllByRestaurantOrderByCreatedAtAsc(restaurant);
+        }
+
+        for (UserKeywords userKeyword : userKeywords) {
+            ReviewResponseDTO.Keyword keyword = ReviewResponseDTO.Keyword.builder()
+                    .keywordId(userKeyword.getId())
+                    .content(userKeyword.getKeyword().getContent())
+                    .build();
+
+            dtos.add(keyword);
+        }
+
+        return dtos;
     }
 
 }

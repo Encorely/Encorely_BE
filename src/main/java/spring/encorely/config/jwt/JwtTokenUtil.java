@@ -3,6 +3,8 @@ package spring.encorely.config.jwt;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -11,6 +13,7 @@ import spring.encorely.apiPayload.exception.handler.AuthHandler;
 import spring.encorely.apiPayload.exception.handler.UserHandler;
 import spring.encorely.domain.user.User;
 import spring.encorely.repository.userRepository.UserRepository;
+import spring.encorely.service.authService.TokenService;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -22,6 +25,7 @@ public class JwtTokenUtil {
     private static final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 30; // 30분
     private static final long REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60 * 1000; // 7일
     private final UserRepository userRepository;
+    private final TokenService tokenService;
 
     @Value("${spring.jwt.secret-key}")
     private String secretKey;
@@ -61,7 +65,7 @@ public class JwtTokenUtil {
             throw new UserHandler(ErrorStatus.USER_NOT_FOUND);
         }
 
-        return Jwts.builder()
+        String refreshToken = Jwts.builder()
                 .setSubject(id)
                 .claim("role", user.getRole().toString())
                 .setId(user.getId().toString())
@@ -69,6 +73,10 @@ public class JwtTokenUtil {
                 .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
+
+        tokenService.saveRefreshToken(id, refreshToken, REFRESH_TOKEN_EXPIRATION);
+
+        return refreshToken;
     }
 
     // 토큰 검증
@@ -96,6 +104,18 @@ public class JwtTokenUtil {
         } catch (JwtException e) {
             throw new AuthHandler(ErrorStatus.INVALID_TOKEN);
         }
+    }
+
+    public static String extractAccessTokenFromCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("accessToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
 
 }

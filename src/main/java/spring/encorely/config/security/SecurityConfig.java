@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -12,6 +13,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import spring.encorely.config.jwt.JwtRequestFilter;
 
 import java.util.List;
+
+import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
 
 @Slf4j
 @EnableWebSecurity
@@ -37,8 +40,13 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**", "/auth/**", "/oauth2/**", "/login/**", "/**").permitAll()
-                    //   .requestMatchers("/api/s3/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/users/nickname/duplicate", "/api/users/userRanking").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/{reviewId}/**", "/api/reviews/reviewRanking",
+                                "/api/reviews/views/**").permitAll()
+                        .requestMatchers("/api/addresses/**", "/api/auth/**", "/api/notifications/**", "/api/notification-settings/**",
+                                "/api/s3/**", "/api/files/**", "/api/users/**").hasRole("USER")
+                        .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**", "/auth/**", "/oauth2/**", "/login/**",
+                                "/error/**", "/api/halls/**", "/api/notices/**", "/api/shows/**", "/api/reviews/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2

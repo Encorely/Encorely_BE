@@ -2,23 +2,34 @@ package spring.encorely.service.reviewService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import spring.encorely.apiPayload.code.status.ErrorStatus;
 import spring.encorely.apiPayload.exception.handler.ReviewHandler;
+import spring.encorely.domain.enums.ReviewImageType;
 import spring.encorely.apiPayload.exception.handler.UserHandler;
 import spring.encorely.domain.enums.ReviewImageCategory;
 import spring.encorely.domain.hall.Hall;
+import spring.encorely.domain.review.PopularReviewCache;
 import spring.encorely.domain.review.Review;
 import spring.encorely.domain.review.ReviewImage;
+import spring.encorely.domain.review.UserKeywords;
 import spring.encorely.domain.user.User;
 import spring.encorely.dto.reviewDto.ReviewRequestDTO;
 import spring.encorely.dto.reviewDto.ReviewResponseDTO;
-import spring.encorely.repository.reviewRepository.ReviewImageRepository;
-import spring.encorely.repository.reviewRepository.ReviewRepository;
+import spring.encorely.exception.NotFoundException;
+import spring.encorely.repository.reviewRepository.*;
 import spring.encorely.service.hallService.HallService;
 import spring.encorely.service.userService.UserService;
+
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +42,10 @@ public class ReviewService {
     private final UserKeywordsService userKeywordsService;
     private final RestaurantService restaurantService;
     private final FacilityService facilityService;
+    private final ReviewStatsRepository reviewStatsRepository;
+    private final PopularReviewCacheRepository popularReviewCacheRepository;
     private final ReviewImageRepository reviewImageRepository;
+    private final UserKeywordsRepository userKeywordsRepository;
 
     public Review findById(Long id) {
         return reviewRepository.findById(id).orElseThrow(() -> new ReviewHandler(ErrorStatus.REVIEW_NOT_FOUND));
@@ -56,6 +70,10 @@ public class ReviewService {
                 .comment(request.getComment())
                 .showDetail(request.getShowDetail())
                 .seatDetail(request.getSeatDetail())
+                .commentCount(0)
+                .viewCount(0)
+                .likeCount(0)
+                .scrapCount(0)
                 .build();
 
         reviewRepository.save(review);
@@ -65,30 +83,155 @@ public class ReviewService {
         restaurantService.saveRestaurant(review, request.getRestaurantInfos());
         facilityService.saveFacility(review, request.getFacilityInfos());
 
+        user.setViewedShowCount(user.getViewedShowCount() + 1);
+
         return new ReviewResponseDTO.CreateReview(review.getId(), review.getCreatedAt());
     }
 
-    public Page<ReviewResponseDTO.ViewReview> getSeatReviewList(Long hallId, ReviewImageCategory category, Pageable pageable) {
-        return reviewRepository.findByHallId(hallId, pageable)
-                .map(r -> ReviewResponseDTO.ViewReview.builder()
-                        .reviewId(r.getId())
-                        .showName(r.getShowName())
-                        .artistName(r.getArtistName())
-                        .seatArea(r.getSeatArea())
-                        .seatRow(r.getSeatRow())
-                        .seatNumber(r.getSeatNumber())
-                        .rating(r.getRating())
-                        .scrapCount(r.getScrapCount())
-                        .commentCount(r.getCommentCount())
-                        .viewCount(r.getViewCount())
-                        .thumbnailImageUrl(
-                                reviewImageRepository
-                                        .findTopByReviewIdAndCategoryOrderByCreatedAtAsc(r.getId(), category)
-                                        .map(ReviewImage::getImageUrl)
-                                        .orElse(null)
-                        )
-                        .build());
+    @Transactional
+    public void incrementReviewViewCount(Long reviewId) {
+        Review review = findById(reviewId);
+        review.setViewCount(review.getViewCount() + 1);
     }
 
+    @Transactional
+    public ReviewResponseDTO.GetReview getReviewDetailById(Long reviewId) {
+        incrementReviewViewCount(reviewId);
+        Review review = findById(reviewId);
+
+        return ReviewResponseDTO.GetReview.builder()
+                .reviewId(review.getId())
+                .nickname(review.getUser().getNickname())
+                .date(review.getDate())
+                .round(review.getRound())
+                .showName(review.getShowName())
+                .showImages(reviewImageService.getImages(ReviewImageType.SHOW, review))
+                .comment(review.getComment())
+                .showDetail(review.getShowDetail())
+                .viewImages(reviewImageService.getImages(ReviewImageType.VIEW, review))
+                .hallId(review.getHall().getId())
+                .hallName(review.getHall().getName())
+                .seatArea(review.getSeatArea())
+                .seatRow(review.getSeatRow())
+                .seatNumber(review.getSeatNumber())
+                .rating(review.getRating())
+                .seatDetail(review.getSeatDetail())
+                .seatKeywords(userKeywordsService.getKeywords(review, null))
+                .restaurants(restaurantService.getRestaurants(review))
+                .facilities(facilityService.getFacilities(review))
+                .likeCount(review.getLikeCount())
+                .commentCount(review.getCommentCount())
+                .build();
+    }
+
+    @Transactional
+    public void updateReview(Long reviewId, ReviewRequestDTO.UpdateReview request) {
+        Review review = findById(reviewId);
+
+        if (request.getShowDate() != null) { review.setDate(request.getShowDate()); }
+
+        if (request.getRound() != null) { review.setRound(request.getRound()); }
+
+        if (request.getShowName() != null) { review.setShowName(request.getShowName()); }
+
+        if (request.getArtistName() != null) { review.setArtistName(request.getArtistName()); }
+
+        if (request.getHallId() != null) { review.setHall(hallService.findById(request.getHallId())); }
+
+        if (request.getSeatArea() != null) { review.setSeatArea(request.getSeatArea()); }
+
+        if (request.getSeatRow() != null) { review.setSeatRow(request.getSeatRow()); }
+
+        if (request.getSeatNumber() != null) { review.setSeatNumber(request.getSeatNumber()); }
+
+        if (request.getRating() != null) { review.setRating(request.getRating()); }
+
+        if (request.getConsAndProsList() != null) {
+            review.getKeywordList().clear();
+            userKeywordsService.saveHallKeywords(review, request.getConsAndProsList());
+        }
+
+        if (request.getSeatDetail() != null) { review.setSeatDetail(request.getSeatDetail()); }
+
+        if (request.getComment() != null) { review.setComment(request.getComment()); }
+
+        if (request.getShowDetail() != null) { review.setShowDetail(request.getShowDetail()); }
+
+        if (request.getReviewImageInfos() != null) { reviewImageService.saveReviewImages(review, request.getReviewImageInfos()); }
+
+        if (request.getRestaurantInfos() != null) { restaurantService.updateRestaurants(request.getRestaurantInfos()); }
+
+        if (request.getFacilityInfos() != null) { facilityService.updateFacilities(request.getFacilityInfos()); }
+
+    }
+
+    @Transactional
+    public void deleteReview(Long reviewId, Long userId) {
+        Review review = findById(reviewId);
+        User user = userService.findById(userId);
+        reviewImageService.deleteAllImages(review);
+        user.setViewedShowCount(user.getViewedShowCount() - 1);
+        reviewRepository.delete(review);
+    }
+
+    public List<ReviewResponseDTO.PopularReviewInfo> getPopularReviews() {
+        List<PopularReviewCache> cached = popularReviewCacheRepository.findAll();
+
+        return cached.stream().map(entry -> {
+            Review review = entry.getReview();
+            String showImageUrl = review.getReviewImageList().stream()
+                    .filter(img -> img.getType() == ReviewImageType.SHOW)
+                    .map(ReviewImage::getImageUrl)
+                    .findFirst()
+                    .orElse(null);
+
+            return ReviewResponseDTO.PopularReviewInfo.builder()
+                    .reviewId(review.getId())
+                    .reviewImageUrl(showImageUrl)
+                    .userProfileImageUrl(review.getUser().getImageUrl())
+                    .nickname(review.getUser().getNickname())
+                    .build();
+        }).toList();
+    }
+
+    public Page<ReviewResponseDTO.ViewReview> getSeatReviewList(Long hallId, String seatArea, String seatRow, String seatNumber,
+                                                                ReviewImageCategory category, String sort, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Review> reviews = reviewRepository.findByFilters(hallId, seatArea, seatRow, seatNumber, sort, pageable);
+        List<Long> reviewIds = reviews.stream().map(Review::getId).collect(Collectors.toList());
+        List<ReviewImage> images = reviewImageRepository.findAllByReviewIdInAndCategoryAndTypeAndUsedIsTrue(
+                reviewIds, category, ReviewImageType.VIEW
+        );
+        Map<Long, List<String>> reviewImagesMap = images.stream()
+                .collect(Collectors.groupingBy(
+                        ri -> ri.getReview().getId(),
+                        Collectors.mapping(ReviewImage::getImageUrl, Collectors.toList())
+                ));
+        List<UserKeywords> userKeywords = userKeywordsRepository.findAllByReviewIdIn(reviewIds);
+        Map<Long, List<String>> reviewKeywordsMap = userKeywords.stream()
+                .collect(Collectors.groupingBy(
+                        uk -> uk.getReview().getId(),
+                        Collectors.mapping(uk -> uk.getKeyword().getContent(), Collectors.toList())
+                ));
+
+        return reviews.map(r -> ReviewResponseDTO.ViewReview.builder()
+                .reviewId(r.getId())
+                .userId(r.getUser().getId())
+                .userImageUrl(r.getUser().getImageUrl())
+                .hallName(r.getHall().getName())
+                .seatArea(r.getSeatArea())
+                .seatRow(r.getSeatRow())
+                .seatNumber(r.getSeatNumber())
+                .rating(r.getRating())
+                .scrapCount(r.getScrapCount())
+                .commentCount(r.getCommentCount())
+                .likeCount(r.getLikeCount())
+                .imageUrls(reviewImagesMap.getOrDefault(r.getId(), Collections.emptyList()))
+                .showDetail(r.getShowDetail())
+                .keywords(reviewKeywordsMap.getOrDefault(r.getId(), Collections.emptyList()))
+                .numOfKeywords(reviewKeywordsMap.getOrDefault(r.getId(), Collections.emptyList()).size())
+                .build()
+        );
+    }
 
 }

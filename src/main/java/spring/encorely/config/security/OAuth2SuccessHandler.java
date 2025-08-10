@@ -26,7 +26,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
-        throws IOException, ServletException {
+            throws IOException, ServletException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
         String id = oAuth2User.getAttribute("id");
@@ -38,7 +38,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         ResponseCookie accessCookie = ResponseCookie.from("accessToken", accessToken)
                 .httpOnly(true)
-                .secure(true)
+                .secure(false) // 개발환경: false, 운영환경에서는 true로 변경하세요
                 .path("/")
                 .maxAge(Duration.ofMinutes(30))
                 .sameSite("Strict")
@@ -46,7 +46,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
-                .secure(true)
+                .secure(false) // 개발환경: false
                 .path("/")
                 .maxAge(Duration.ofDays(7))
                 .sameSite("Strict")
@@ -55,5 +55,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
+        // 로그인 성공 후 프론트로 리다이렉트 (예: React 앱 로그인 성공 페이지)
+        response.sendRedirect("http://localhost:3000/login-success");
     }
 }

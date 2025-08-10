@@ -40,20 +40,12 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**", "/auth/**", "/oauth2/**", "/login/**", "/**", "/error/**").permitAll()
-                    //   .requestMatchers("/api/s3/**").hasRole("USER")
-                        .requestMatchers(antMatcher(HttpMethod.GET, "/api/reviews/{reviewId}")).permitAll()
-                        .requestMatchers(antMatcher(HttpMethod.GET, "/api/reviews")).permitAll()
-                        .requestMatchers(antMatcher(HttpMethod.GET, "/api/reviews/{reviewId}/comments")).permitAll()
-
-                        .requestMatchers(antMatcher("/api/reviews/*/like-toggle")).authenticated()
-                        .requestMatchers(antMatcher("/api/reviews/*/has-liked")).authenticated()
-                        .requestMatchers(antMatcher(HttpMethod.POST, "/api/reviews/*/comments")).authenticated()
-                        .requestMatchers(antMatcher(HttpMethod.POST, "/api/reviews/*/comments/*/replies")).authenticated()
-                        .requestMatchers(antMatcher(HttpMethod.DELETE, "/api/reviews/*/comments/*")).authenticated()
-
-                        .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**", "/auth/**", "/oauth2/**", "/login/**").permitAll()
-
+                        .requestMatchers(HttpMethod.GET, "/api/users/nickname/duplicate", "/api/users/userRanking").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/{reviewId}/**", "/api/reviews/reviewRanking").permitAll()
+                        .requestMatchers("/api/addresses/**", "/api/auth/**", "/api/notifications/**", "/api/notification-settings/**",
+                                "/api/s3/**", "/api/files/**", "/api/users/**").hasRole("USER")
+                        .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**", "/auth/**", "/oauth2/**", "/login/**",
+                                "/error/**", "/api/halls/**", "/api/notices/**", "/api/shows/**", "/api/reviews/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2

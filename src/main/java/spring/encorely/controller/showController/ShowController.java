@@ -2,12 +2,10 @@ package spring.encorely.controller.showController;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import spring.encorely.apiPayload.ApiResponse;
 import spring.encorely.dto.showDto.ShowResponseDTO;
+import spring.encorely.dto.showDto.ShowSearchResponseDto;
 import spring.encorely.service.showService.ShowService;
 
 import java.util.List;
@@ -29,6 +27,13 @@ public class ShowController {
     @Operation(summary = "공연 상세 정보 불러오기")
     public ApiResponse<ShowResponseDTO.GetShowDetail> getOngoingShow(@PathVariable Long showId) {
         return ApiResponse.onSuccess(showService.getOngoingShow(showId));
+    }
+
+    @GetMapping("/ongoing/search")
+    @Operation(summary = "현재 진행중인 공연 검색")
+    public ApiResponse<List<ShowResponseDTO.GetOngoingShow>> searchOngoingShows(@RequestParam(required = false) String searchKeyword) {
+        List<ShowResponseDTO.GetOngoingShow> showList = showService.searchShows(searchKeyword);
+        return ApiResponse.onSuccess(showList);
     }
 
 }

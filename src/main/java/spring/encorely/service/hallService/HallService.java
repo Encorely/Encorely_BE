@@ -11,6 +11,7 @@ import spring.encorely.apiPayload.exception.handler.HallHandler;
 import spring.encorely.domain.hall.Hall;
 import spring.encorely.domain.hall.HallClickRanking;
 import spring.encorely.dto.hallDto.HallResponseDTO;
+import spring.encorely.dto.hallDto.HallSearchResponseDto;
 import spring.encorely.exception.NotFoundException;
 import spring.encorely.repository.hallRepostiory.HallClickLogRepository;
 import spring.encorely.repository.hallRepostiory.HallClickRankingRepository;
@@ -20,6 +21,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -90,6 +92,21 @@ public class HallService {
         return HallResponseDTO.HallRankingList.builder()
                 .hallRankingList(hallRankingList)
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<HallSearchResponseDto> searchHalls(String searchKeyword) {
+        List<Hall> hallList;
+
+        if (searchKeyword == null || searchKeyword.trim().isEmpty()) {
+            hallList = hallRepository.findAll();
+        } else {
+            hallList = hallRepository.findByNameOrAddressContaining(searchKeyword);
+        }
+
+        return hallList.stream()
+                .map(HallSearchResponseDto::from)
+                .collect(Collectors.toList());
     }
 
 }

@@ -48,4 +48,7 @@ public class Show extends BaseEntity {
     @Column(nullable = false)
     private String link;
 
+    @Column(nullable = false)
+    private String posterUrl;
+
 }

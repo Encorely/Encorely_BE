@@ -121,4 +121,26 @@ public class ReviewResponseDTO {
         String comment;
     }
 
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ViewReview {
+        private Long reviewId;
+        private Long userId;
+        private String userImageUrl;
+        private String hallName;
+        private String seatArea;
+        private String seatRow;
+        private String seatNumber;
+        private Float rating;
+        private Integer scrapCount;
+        private Integer commentCount;
+        private Integer likeCount;
+        private List<String> imageUrls;
+        private String showDetail;
+        private List<String> keywords;
+        private Integer numOfKeywords;
+    }
+
 }

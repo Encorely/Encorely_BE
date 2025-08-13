@@ -6,6 +6,7 @@ import spring.encorely.domain.enums.ReviewImageType;
 import spring.encorely.domain.review.Facility;
 import spring.encorely.domain.review.Restaurant;
 import spring.encorely.domain.review.Review;
+import spring.encorely.domain.enums.ReviewImageCategory;
 import spring.encorely.domain.review.ReviewImage;
 
 import java.util.List;
@@ -17,5 +18,13 @@ public interface ReviewImageRepository extends JpaRepository<ReviewImage, Long> 
     List<ReviewImage> findAllByReviewAndTypeAndUsedIsTrue(Review review, ReviewImageType type);
     ReviewImage findByRestaurantAndUsedIsTrue(Restaurant restaurant);
     ReviewImage findByFacilityAndUsedIsTrue(Facility facility);
-    List<ReviewImage> findAllByReviewAndUsedTrue(Review review);
+    List<ReviewImage> findAllByReviewAndUsedIsTrue(Review review);
+    Optional<ReviewImage> findTopByReviewIdAndUsedIsTrueOrderByCreatedAtAsc(Long reviewId);
+    Optional<ReviewImage> findTopByReviewIdAndCategoryOrderByCreatedAtAsc(Long reviewId, ReviewImageCategory category);
+    List<ReviewImage> findAllByReviewIdInAndCategoryAndTypeAndUsedIsTrue(
+            List<Long> reviewIds,
+            ReviewImageCategory category,
+            ReviewImageType type
+    );
+
 }

@@ -45,4 +45,26 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             "    WHERE ub.blocker.id = u.id AND ub.blocked.id = :userId" +
             ")")
     Page<Review> findReviewByKeyword(@Param("userId") Long userId, @Param("keyword") String keyword, Pageable pageable);
+
+    @Query("SELECT r FROM Review r WHERE r.hall.id = :hallId ORDER BY r.createdAt DESC")
+    Page<Review> findByHallId(@Param("hallId") Long hallId, Pageable pageable);
+
+    @Query("""
+    SELECT r
+    FROM Review r
+    WHERE (:hallId IS NULL OR r.hall.id = :hallId)
+      AND (:seatArea IS NULL OR r.seatArea = :seatArea)
+      AND (:seatRow IS NULL OR r.seatRow = :seatRow)
+      AND (:seatNumber IS NULL OR r.seatNumber = :seatNumber)
+    ORDER BY
+      CASE WHEN :sort = 'latest' THEN r.createdAt END DESC,
+      CASE WHEN :sort = 'popular' THEN (r.likeCount + r.scrapCount) END DESC
+    """)
+    Page<Review> findByFilters(@Param("hallId") Long hallId,
+                               @Param("seatArea") String seatArea,
+                               @Param("seatRow") String seatRow,
+                               @Param("seatNumber") String seatNumber,
+                               @Param("sort") String sort,
+                               Pageable pageable);
+
 }

@@ -4,15 +4,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import spring.encorely.apiPayload.code.status.ErrorStatus;
 import spring.encorely.apiPayload.exception.handler.ShowHandler;
 import spring.encorely.domain.show.Show;
 import spring.encorely.dto.showDto.ShowResponseDTO;
+import spring.encorely.dto.showDto.ShowSearchResponseDto;
 import spring.encorely.repository.showRepository.ShowRepository;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -63,4 +66,31 @@ public class ShowService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public List<ShowResponseDTO.GetOngoingShow> searchShows(String searchKeyword) {
+        LocalDate currentDate = LocalDate.now();
+        List<Show> showList;
+
+        if (searchKeyword == null || searchKeyword.trim().isEmpty()) {
+            showList = showRepository.findOngoingShows(currentDate);
+        } else {
+            showList = showRepository.findBySearchKeywordAndOngoing(searchKeyword, currentDate);
+        }
+
+        return showList.stream()
+                .map(this::mapToShowResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    private ShowResponseDTO.GetOngoingShow mapToShowResponseDto(Show show) {
+        return ShowResponseDTO.GetOngoingShow.builder()
+                .showId(show.getId())
+                .imageUrl(show.getPosterUrl())
+                .showName(show.getName())
+                .hallId(show.getHall().getId())
+                .hallName(show.getHall().getName())
+                .startDate(show.getStartDate())
+                .endDate(show.getEndDate())
+                .build();
+    }
 }

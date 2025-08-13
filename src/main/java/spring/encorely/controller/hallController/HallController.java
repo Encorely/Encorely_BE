@@ -10,10 +10,14 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import spring.encorely.apiPayload.ApiResponse;
 import spring.encorely.dto.hallDto.HallResponseDTO;
+import spring.encorely.dto.hallDto.HallSearchResponseDto;
 import spring.encorely.service.hallService.HallService;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -37,5 +41,12 @@ public class HallController {
     @Operation(summary = "인기 있는 공연장 상위 6개")
     public ApiResponse<HallResponseDTO.HallRankingList> getHallRankingList() {
         return ApiResponse.onSuccess(hallService.getHallRankingList());
+    }
+
+    @GetMapping("/search")
+    @Operation(summary = "공연장 검색")
+    public ApiResponse<List<HallSearchResponseDto>> searchHalls(@RequestParam(required = false) String searchKeyword) {
+        List<HallSearchResponseDto> hallList = hallService.searchHalls(searchKeyword);
+        return ApiResponse.onSuccess(hallList);
     }
 }

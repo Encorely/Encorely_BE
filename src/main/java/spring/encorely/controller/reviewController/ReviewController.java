@@ -124,6 +124,14 @@ public class ReviewController {
         return ApiResponse.onSuccess(reviewService.getPopularReviews());
     }
 
+    @GetMapping("/searching/{keyword}")
+    @Operation(summary = "키워드를 통한 리뷰 검색")
+    public ApiResponse<List<ReviewResponseDTO.PopularReviewInfo>> searchReviews(@AuthenticationPrincipal UserDetails userDetails,
+                                                                                @PathVariable String keyword,
+                                                                                Pageable pageable) {
+        return ApiResponse.onSuccess(reviewService.searchReviews(Long.parseLong(userDetails.getUsername()), keyword, pageable));
+    }
+  
     @GetMapping("/views/{hallId}")
     @Operation(summary = "공연장별 시야 후기 목록 조회 API")
     public ApiResponse<Page<ReviewResponseDTO.ViewReview>> getSeatReviewList(@PathVariable Long hallId,

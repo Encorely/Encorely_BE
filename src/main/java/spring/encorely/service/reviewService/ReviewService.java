@@ -2,6 +2,7 @@ package spring.encorely.service.reviewService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -194,6 +195,30 @@ public class ReviewService {
         }).toList();
     }
 
+
+    public List<ReviewResponseDTO.PopularReviewInfo> searchReviews(Long userId, String keyword, Pageable pageable) {
+        Page<Review> reviewPage = reviewRepository.findReviewByKeyword(userId, keyword, pageable);
+        List<Review> reviews = reviewPage.getContent();
+
+        return reviews.stream()
+                .map(review -> {
+                    String showImageUrl = review.getReviewImageList().stream()
+                            .filter(img -> img.getType() == ReviewImageType.SHOW)
+                            .map(ReviewImage::getImageUrl)
+                            .findFirst()
+                            .orElse(null);
+
+                    return new ReviewResponseDTO.PopularReviewInfo(
+                            review.getId(),
+                            showImageUrl,
+                            review.getUser().getImageUrl(),
+                            review.getUser().getNickname(),
+                            review.getComment()
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
     public Page<ReviewResponseDTO.ViewReview> getSeatReviewList(Long hallId, String seatArea, String seatRow, String seatNumber,
                                                                 ReviewImageCategory category, String sort, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -233,5 +258,4 @@ public class ReviewService {
                 .build()
         );
     }
-
 }

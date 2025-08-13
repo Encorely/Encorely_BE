@@ -3,7 +3,9 @@ package spring.encorely.service.userService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import spring.encorely.apiPayload.code.status.ErrorStatus;
@@ -308,6 +310,20 @@ public class UserService {
         }
 
         userRepository.delete(user);
+    }
+
+    @Transactional
+    public List<UserResponseDTO.PopularUserInfo> searchUsers(Long userId, String keyword, Pageable pageable) {
+        Page<User> userPage = userRepository.findUserByKeyword(userId, keyword, pageable);
+        List<User> users = userPage.getContent();
+        return users.stream()
+                .map(user -> new UserResponseDTO.PopularUserInfo(
+                        user.getId(),
+                        user.getNickname(),
+                        user.getImageUrl(),
+                        user.getIntroduction()
+                ))
+                .collect(Collectors.toList());
     }
 
 }

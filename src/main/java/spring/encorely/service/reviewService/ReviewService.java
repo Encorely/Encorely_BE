@@ -2,7 +2,9 @@ package spring.encorely.service.reviewService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import spring.encorely.apiPayload.code.status.ErrorStatus;
 import spring.encorely.apiPayload.exception.handler.ReviewHandler;
@@ -23,6 +25,7 @@ import spring.encorely.service.userService.UserService;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -185,4 +188,27 @@ public class ReviewService {
         }).toList();
     }
 
+
+    public List<ReviewResponseDTO.PopularReviewInfo> searchReviews(Long userId, String keyword, Pageable pageable) {
+        Page<Review> reviewPage = reviewRepository.findReviewByKeyword(userId, keyword, pageable);
+        List<Review> reviews = reviewPage.getContent();
+
+        return reviews.stream()
+                .map(review -> {
+                    String showImageUrl = review.getReviewImageList().stream()
+                            .filter(img -> img.getType() == ReviewImageType.SHOW)
+                            .map(ReviewImage::getImageUrl)
+                            .findFirst()
+                            .orElse(null);
+
+                    return new ReviewResponseDTO.PopularReviewInfo(
+                            review.getId(),
+                            showImageUrl,
+                            review.getUser().getImageUrl(),
+                            review.getUser().getNickname(),
+                            review.getComment()
+                    );
+                })
+                .collect(Collectors.toList());
+    }
 }

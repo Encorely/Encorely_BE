@@ -3,6 +3,7 @@ package spring.encorely.controller.reviewController;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -117,6 +118,14 @@ public class ReviewController {
     @Operation(summary = "화제의 후기들")
     public ApiResponse<List<ReviewResponseDTO.PopularReviewInfo>> getPopularReviews() {
         return ApiResponse.onSuccess(reviewService.getPopularReviews());
+    }
+
+    @GetMapping("/searching/{keyword}")
+    @Operation(summary = "키워드를 통한 리뷰 검색")
+    public ApiResponse<List<ReviewResponseDTO.PopularReviewInfo>> searchReviews(@AuthenticationPrincipal UserDetails userDetails,
+                                                                                @PathVariable String keyword,
+                                                                                Pageable pageable) {
+        return ApiResponse.onSuccess(reviewService.searchReviews(Long.parseLong(userDetails.getUsername()), keyword, pageable));
     }
 
 }

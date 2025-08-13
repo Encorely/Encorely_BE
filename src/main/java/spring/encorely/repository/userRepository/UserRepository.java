@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import spring.encorely.domain.user.User;
 
 import java.util.Optional;
@@ -27,5 +28,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "    SELECT ub FROM UserBlock ub " +
             "    WHERE ub.blocker.id = u.id AND ub.blocked.id = :userId" +
             ")")
-    Page<User> findUserByKeyword(Long userId, String keyword, Pageable pageable);
+    Page<User> findUserByKeyword(@Param("userId") Long userId, @Param("keyword") String keyword, Pageable pageable);
 }

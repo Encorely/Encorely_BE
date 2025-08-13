@@ -122,7 +122,7 @@ public class UserController {
     public ApiResponse<List<UserResponseDTO.PopularUserInfo>> searchUsers(@AuthenticationPrincipal UserDetails userDetails,
                                                                           @PathVariable String keyword,
                                                                           Pageable pageable) {
-        return ApiResponse.onSuccess(userService.searchUsers(4L, keyword, pageable));
+        return ApiResponse.onSuccess(userService.searchUsers(Long.parseLong(userDetails.getUsername()), keyword, pageable));
     }
 
 }

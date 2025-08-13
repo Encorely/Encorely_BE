@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -114,6 +115,14 @@ public class UserController {
                                           HttpServletRequest request) {
         userService.deleteUser(Long.parseLong(userDetails.getUsername()), request);
         return ApiResponse.onSuccess("탈퇴가 완료되었습니다.");
+    }
+
+    @GetMapping("/searching/{keyword}")
+    @Operation(summary = "사용자 검색")
+    public ApiResponse<List<UserResponseDTO.PopularUserInfo>> searchUsers(@AuthenticationPrincipal UserDetails userDetails,
+                                                                          @PathVariable String keyword,
+                                                                          Pageable pageable) {
+        return ApiResponse.onSuccess(userService.searchUsers(4L, keyword, pageable));
     }
 
 }

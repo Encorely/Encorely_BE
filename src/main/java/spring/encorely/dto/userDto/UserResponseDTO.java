@@ -119,7 +119,7 @@ public class UserResponseDTO {
         Long userId;
         String nickname;
         String imageUrl;
-        String instruction;
+        String introduction;
 
     }
 

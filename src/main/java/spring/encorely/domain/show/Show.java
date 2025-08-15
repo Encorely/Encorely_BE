@@ -30,25 +30,22 @@ public class Show extends BaseEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column
     private LocalDate startDate;
 
-    @Column(nullable = false)
+    @Column
     private LocalDate endDate;
 
-    @Column(nullable = false)
-    private String imageUrl;
-
-    @Column(nullable = false)
+    @Column
     private String bookingDate;
 
-    @Column(nullable = false)
+    @Column
     private Integer age;
 
-    @Column(nullable = false)
+    @Column
     private String link;
 
-    @Column(nullable = false)
+    @Column
     private String posterUrl;
 
 }

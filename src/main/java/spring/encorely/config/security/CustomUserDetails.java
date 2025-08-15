@@ -1,10 +1,12 @@
 package spring.encorely.config.security;
 
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import spring.encorely.domain.user.User;
 
 import java.util.Collection;
+import java.util.List;
 
 public class CustomUserDetails implements UserDetails {
 
@@ -20,7 +22,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
     }
 
     @Override

@@ -31,6 +31,7 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(request -> {
                     var corsConfig = new org.springframework.web.cors.CorsConfiguration();
+                    corsConfig.setAllowCredentials(true);
                     corsConfig.setAllowedOrigins(List.of("http://localhost:3000", "http://3.34.105.231:8080", "http://13.209.39.26:8080")); // 필요한 도메인 허용
                     corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                     corsConfig.setAllowedHeaders(List.of("Authorization", "Content-Type"));

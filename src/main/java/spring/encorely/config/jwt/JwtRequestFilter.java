@@ -117,10 +117,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private void addAccessTokenCookie(HttpServletResponse response, String newAccessToken) {
         ResponseCookie accessCookie = ResponseCookie.from("accessToken", newAccessToken)
                 .httpOnly(true)
-                .secure(true)
+                .secure(false)
                 .path("/")
                 .maxAge(Duration.ofMinutes(30))
-                .sameSite("Strict")
+                .sameSite("None")
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
     }

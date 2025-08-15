@@ -55,7 +55,13 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
-        // 로그인 성공 후 프론트로 리다이렉트 (예: React 앱 로그인 성공 페이지)
-        response.sendRedirect("http://localhost:3000/login-success");
+        response.setStatus(HttpServletResponse.SC_OK);
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        String body = "{\"message\": \"Login success\"}";
+        response.getWriter().write(body);
     }
+
 }

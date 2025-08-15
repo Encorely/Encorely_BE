@@ -8,6 +8,7 @@ import spring.encorely.domain.common.BaseEntity;
 import spring.encorely.domain.hall.Hall;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -37,7 +38,7 @@ public class Show extends BaseEntity {
     private LocalDate endDate;
 
     @Column
-    private String bookingDate;
+    private LocalDateTime bookingDate;
 
     @Column
     private Integer age;

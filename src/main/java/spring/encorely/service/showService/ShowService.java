@@ -38,7 +38,7 @@ public class ShowService {
         for (Show show : shows) {
             ShowResponseDTO.GetOngoingShow dto = ShowResponseDTO.GetOngoingShow.builder()
                     .showId(show.getId())
-                    .imageUrl(show.getImageUrl())
+                    .imageUrl(show.getPosterUrl())
                     .showName(show.getName())
                     .hallId(show.getHall().getId())
                     .hallName(show.getHall().getName())
@@ -55,7 +55,7 @@ public class ShowService {
         Show show = findById(showId);
 
         return ShowResponseDTO.GetShowDetail.builder()
-                .imageUrl(show.getImageUrl())
+                .imageUrl(show.getPosterUrl())
                 .showName(show.getName())
                 .hallId(show.getHall().getId())
                 .hallName(show.getHall().getName())

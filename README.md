@@ -46,6 +46,96 @@
 
 ---
 
+
+## 📂 프로젝트 구조 (Project Structure)
+
+```bash
+src
+└── main
+    └── java
+        └── spring.encorely
+            ├── apiPayload
+            │   ├── code
+            │   ├── exception
+            │   └── ApiResponse
+            ├── component
+            ├── config
+            │   ├── jwt
+            │   └── security
+            │       ├── RedisConfig
+            │       ├── RestTemplateConfig
+            │       ├── S3Config
+            │       ├── SchedulingConfig
+            │       ├── SwaggerConfig
+            │       └── WebConfig
+            ├── controller
+            │   ├── addressController
+            │   ├── authController
+            │   ├── hallController
+            │   ├── noticeController
+            │   ├── notificationController
+            │   ├── reviewController
+            │   ├── s3Controller
+            │   ├── scrapFileController
+            │   ├── showController
+            │   └── userController
+            ├── domain
+            │   ├── comment
+            │   ├── common
+            │   ├── enums
+            │   ├── hall
+            │   ├── like
+            │   ├── notification
+            │   ├── review
+            │   ├── scrap
+            │   ├── show
+            │   └── user
+            ├── dto
+            │   ├── commentDto
+            │   ├── hallDto
+            │   ├── kakaoLocalDto
+            │   ├── noticeDto
+            │   ├── notificationDto
+            │   ├── reviewDto
+            │   ├── s3Dto
+            │   ├── scrapDto
+            │   ├── showDto
+            │   └── userDto
+            ├── exception
+            │   └── NotFoundException
+            ├── listener
+            │   ├── ListenerUtil
+            │   └── UserEntityListener
+            ├── notice
+            │   └── Notice
+            ├── repository
+            │   ├── commentRepository
+            │   ├── hallRepository
+            │   ├── likeRepository
+            │   ├── noticeRepository
+            │   ├── notificationRepository
+            │   ├── reviewRepository
+            │   ├── scrapRepository
+            │   ├── showRepository
+            │   └── userRepository
+            ├── service
+            │   ├── addressService
+            │   ├── authService
+            │   ├── commentService
+            │   ├── hallService
+            │   ├── likeService
+            │   ├── noticeService
+            │   ├── notificationService
+            │   ├── reviewService
+            │   ├── s3Service
+            │   ├── scrapService
+            │   ├── showService
+            │   └── userService
+            └── EncorelyApplication
+
+```
+---
+
 ## 🤝 협업 규칙 (Collaboration Rules)
 
 ### 브랜치 전략 (Branching Strategy)

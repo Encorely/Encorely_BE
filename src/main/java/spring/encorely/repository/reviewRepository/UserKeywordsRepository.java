@@ -1,6 +1,8 @@
 package spring.encorely.repository.reviewRepository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import spring.encorely.domain.review.Restaurant;
 import spring.encorely.domain.review.Review;
@@ -15,4 +17,11 @@ public interface UserKeywordsRepository extends JpaRepository<UserKeywords, Long
     List<UserKeywords> findAllByRestaurantOrderByCreatedAtAsc(Restaurant restaurant);
     Optional<UserKeywords> findTop1ByReviewOrderByCreatedAtAsc(Review review);
     List<UserKeywords> findAllByReviewIdIn(List<Long> reviewIds);
+    @Query("""
+        SELECT uk
+        FROM UserKeywords uk
+        JOIN FETCH uk.keyword k
+        WHERE uk.restaurant IN :restaurants
+    """)
+    List<UserKeywords> findAllByRestaurantInWithKeyword(@Param("restaurants") List<Restaurant> restaurants);
 }

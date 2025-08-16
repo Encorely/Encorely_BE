@@ -143,4 +143,43 @@ public class ReviewResponseDTO {
         private Integer numOfKeywords;
     }
 
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class GetRestaurant {
+
+        private Long restaurantId;
+        private Long userId;
+        private String userImageUrl;
+        private String hallName;
+        private Integer distance;
+        private Integer scrapCount;
+        private String restaurantName;
+        private String latitude;
+        private String longitude;
+        private String imageUrl;
+        private String restaurantDetail;
+        private List<String> keywords;
+        private Integer numOfKeywords;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class GetFacility {
+
+        private Long facilityId;
+        private Long userId;
+        private String userImageUrl;
+        private String hallName;
+        private Integer scrapCount;
+        private String facilityName;
+        private String latitude;
+        private String longitude;
+        private String imageUrl;
+        private String tips;
+    }
+
 }

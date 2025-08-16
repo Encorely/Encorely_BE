@@ -42,21 +42,33 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        log.debug("[JwtRequestFilter] 요청 시작: {} {}", request.getMethod(), request.getRequestURI());
+        try {
+            log.debug("[JwtRequestFilter] 요청 시작: {} {}", request.getMethod(), request.getRequestURI());
 
-        String accessToken = extractTokenFromCookies(request, "accessToken");
-        String refreshToken = extractTokenFromCookies(request, "refreshToken");
+            String accessToken = extractTokenFromCookies(request, "accessToken");
+            String refreshToken = extractTokenFromCookies(request, "refreshToken");
 
-        log.debug("[JwtRequestFilter] accessToken: {}", accessToken);
-        log.debug("[JwtRequestFilter] refreshToken: {}", refreshToken);
+            if (accessToken != null) {
+                handleAccessToken(accessToken, request);
+            } else if (refreshToken != null) {
+                tryRefreshingWithRefreshToken(refreshToken, response, request);
+            }
 
-        if (accessToken != null) {
-            handleAccessToken(accessToken, request);
-        } else if (refreshToken != null) {
-            tryRefreshingWithRefreshToken(refreshToken, response, request);
+            filterChain.doFilter(request, response);
+
+        } catch (ExpiredJwtException e) {
+            log.warn("Access token expired", e);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        } catch (JwtException e) {
+            log.warn("Invalid JWT", e);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        } catch (AuthHandler e) {
+            log.warn("AuthHandler error", e);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        } catch (Exception e) {
+            log.error("Unexpected JWT filter error", e);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
-
-        filterChain.doFilter(request, response);
     }
 
     private void handleAccessToken(String accessToken, HttpServletRequest request) {
@@ -134,6 +146,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
         }
         return null;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return path.startsWith("/swagger-ui")
+                || path.startsWith("/v3/api-docs")
+                || path.equals("/swagger-ui.html")
+                || path.startsWith("/error");
     }
 
 }

@@ -56,12 +56,6 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
         response.setStatus(HttpServletResponse.SC_OK);
-
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        String body = "{\"message\": \"Login success\"}";
-        response.getWriter().write(body);
     }
 
 }

@@ -2,9 +2,12 @@ package spring.encorely.service.reviewService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import spring.encorely.apiPayload.code.status.ErrorStatus;
 import spring.encorely.apiPayload.exception.handler.FacilityHandler;
+import spring.encorely.domain.enums.FacilityType;
 import spring.encorely.domain.review.Facility;
 import spring.encorely.domain.review.Restaurant;
 import spring.encorely.domain.review.Review;
@@ -86,6 +89,33 @@ public class FacilityService {
             if (info.getImageUrl() != null) { reviewImageService.saveFacilityImage(facility, info.getImageUrl()); }
 
         }
+    }
+
+    public List<ReviewResponseDTO.GetFacility> getFacilities(Long hallId, String keyword, FacilityType type,
+                                                             String sort, Pageable pageable) {
+        String kw = (keyword != null && !keyword.isBlank()) ? keyword : null;
+        String sortKey = ("popular".equalsIgnoreCase(sort)) ? "popular" : "latest";
+
+        Page<Facility> page = facilityRepository.findByHallAndFilters(hallId, kw, type, sortKey, pageable);
+        List<Facility> facilities = page.getContent();
+        if (facilities.isEmpty()) return List.of();
+
+        return facilities.stream().map(f -> {
+            var rv = f.getReview();
+
+            return ReviewResponseDTO.GetFacility.builder()
+                    .facilityId(f.getId())
+                    .userId(rv.getUser().getId())
+                    .userImageUrl(rv.getUser().getImageUrl())
+                    .hallName(rv.getHall().getName())
+                    .scrapCount(rv.getScrapCount())
+                    .facilityName(f.getName())
+                    .latitude(f.getLatitude())
+                    .longitude(f.getLongitude())
+                    .imageUrl(f.getReviewImage().getImageUrl())
+                    .tips(f.getTips())
+                    .build();
+        }).toList();
     }
 
 }

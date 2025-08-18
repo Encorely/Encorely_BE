@@ -114,6 +114,8 @@ public class FacilityService {
                     .longitude(f.getLongitude())
                     .imageUrl(f.getReviewImage().getImageUrl())
                     .tips(f.getTips())
+                    .commentCount(rv.getCommentCount())
+                    .likeCount(rv.getLikeCount())
                     .build();
         }).toList();
     }

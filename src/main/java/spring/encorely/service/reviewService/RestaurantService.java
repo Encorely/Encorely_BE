@@ -136,6 +136,8 @@ public class RestaurantService {
                     .restaurantDetail(r.getRestaurantDetail())
                     .keywords(keywords)
                     .numOfKeywords(keywords.size())
+                    .commentCount(rv.getCommentCount())
+                    .likeCount(rv.getLikeCount())
                     .build();
         }).toList();
     }

@@ -162,6 +162,8 @@ public class ReviewResponseDTO {
         private String restaurantDetail;
         private List<String> keywords;
         private Integer numOfKeywords;
+        private Integer likeCount;
+        private Integer commentCount;
     }
 
     @Getter
@@ -180,6 +182,8 @@ public class ReviewResponseDTO {
         private String longitude;
         private String imageUrl;
         private String tips;
+        private Integer likeCount;
+        private Integer commentCount;
     }
 
 }

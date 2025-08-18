@@ -47,7 +47,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/addresses/**", "/api/auth/**", "/api/notifications/**", "/api/notification-settings/**",
                                 "/api/s3/**", "/api/files/**", "/api/users/**").hasRole("USER")
                         .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**", "/auth/**", "/oauth2/**", "/login/**",
-                                "/error/**", "/api/halls/**", "/api/notices/**", "/api/shows/**", "/api/reviews/**").permitAll()
+                                "/error/**", "/api/halls/**", "/api/notices/**", "/api/shows/**", "/api/reviews/**", "/api/restaurants/**",
+                                "/api/facilities/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
@@ -56,8 +57,6 @@ public class SecurityConfig {
                                 .userService(customOAuth2UserService))
                         .successHandler(oAuth2SuccessHandler))
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
-        ;
-
 
         return http.build();
     }

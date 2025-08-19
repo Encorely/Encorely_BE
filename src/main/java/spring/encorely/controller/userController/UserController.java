@@ -105,8 +105,9 @@ public class UserController {
 
     @GetMapping("/userRanking")
     @Operation(summary = "인기 사용자 불러오기")
-    public ApiResponse<List<UserResponseDTO.PopularUserInfo>> getPopularUsers() {
-        return ApiResponse.onSuccess(userService.getPopularUsers());
+    public ApiResponse<List<UserResponseDTO.PopularUserInfo>> getPopularUsers(@AuthenticationPrincipal UserDetails userDetails) {
+        Long currentUserId = (userDetails != null) ? Long.parseLong(userDetails.getUsername()) : null;
+        return ApiResponse.onSuccess(userService.getPopularUsers(currentUserId));
     }
 
     @DeleteMapping
@@ -122,7 +123,8 @@ public class UserController {
     public ApiResponse<List<UserResponseDTO.PopularUserInfo>> searchUsers(@AuthenticationPrincipal UserDetails userDetails,
                                                                           @PathVariable String keyword,
                                                                           Pageable pageable) {
-        return ApiResponse.onSuccess(userService.searchUsers(Long.parseLong(userDetails.getUsername()), keyword, pageable));
+        Long currentUserId = (userDetails != null) ? Long.parseLong(userDetails.getUsername()) : null;
+        return ApiResponse.onSuccess(userService.searchUsers(currentUserId, keyword, pageable));
     }
 
 }

@@ -120,8 +120,9 @@ public class ReviewController {
 
     @GetMapping("/reviewRanking")
     @Operation(summary = "화제의 후기들")
-    public ApiResponse<List<ReviewResponseDTO.PopularReviewInfo>> getPopularReviews() {
-        return ApiResponse.onSuccess(reviewService.getPopularReviews());
+    public ApiResponse<List<ReviewResponseDTO.PopularReviewInfo>> getPopularReviews(@AuthenticationPrincipal UserDetails userDetails) {
+        Long currentUserId = (userDetails != null) ? Long.parseLong(userDetails.getUsername()) : null;
+        return ApiResponse.onSuccess(reviewService.getPopularReviews(currentUserId));
     }
 
     @GetMapping("/searching/{keyword}")
@@ -129,12 +130,14 @@ public class ReviewController {
     public ApiResponse<List<ReviewResponseDTO.PopularReviewInfo>> searchReviews(@AuthenticationPrincipal UserDetails userDetails,
                                                                                 @PathVariable String keyword,
                                                                                 Pageable pageable) {
-        return ApiResponse.onSuccess(reviewService.searchReviews(Long.parseLong(userDetails.getUsername()), keyword, pageable));
+        Long  currentUserId = (userDetails != null) ? Long.parseLong(userDetails.getUsername()) : null;
+        return ApiResponse.onSuccess(reviewService.searchReviews(currentUserId, keyword, pageable));
     }
   
     @GetMapping("/views/{hallId}")
     @Operation(summary = "공연장별 시야 후기 목록 조회 API")
-    public ApiResponse<Page<ReviewResponseDTO.ViewReview>> getSeatReviewList(@PathVariable Long hallId,
+    public ApiResponse<Page<ReviewResponseDTO.ViewReview>> getSeatReviewList(@AuthenticationPrincipal UserDetails userDetails,
+                                                                             @PathVariable Long hallId,
                                                                              @RequestParam(required = false) String seatArea,
                                                                              @RequestParam(required = false) String seatRow,
                                                                              @RequestParam(required = false) String seatNumber,
@@ -142,8 +145,9 @@ public class ReviewController {
                                                                              @RequestParam(defaultValue = "10") int size,
                                                                              @RequestParam(defaultValue = "createdAt,DESC") String sort,
                                                                              @RequestParam(defaultValue = "REVIEW") ReviewImageCategory category) {
+        Long userId = (userDetails != null) ? Long.parseLong(userDetails.getUsername()) : null;
         Page<ReviewResponseDTO.ViewReview> response = reviewService.getSeatReviewList
-                (hallId, seatArea, seatRow, seatNumber, category, sort, page, size);
+                (userId, hallId, seatArea, seatRow, seatNumber, category, sort, page, size);
         return ApiResponse.onSuccess(response);
     }
 

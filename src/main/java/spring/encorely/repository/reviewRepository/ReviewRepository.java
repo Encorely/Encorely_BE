@@ -11,6 +11,7 @@ import spring.encorely.domain.user.User;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Long> {
@@ -56,15 +57,17 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
       AND (:seatArea IS NULL OR r.seatArea = :seatArea)
       AND (:seatRow IS NULL OR r.seatRow = :seatRow)
       AND (:seatNumber IS NULL OR r.seatNumber = :seatNumber)
+      AND (COALESCE(:blockedIds) IS NULL OR r.user.id NOT IN :blockedIds)
     ORDER BY
       CASE WHEN :sort = 'latest' THEN r.createdAt END DESC,
       CASE WHEN :sort = 'popular' THEN (r.likeCount + r.scrapCount) END DESC
     """)
-    Page<Review> findByFilters(@Param("hallId") Long hallId,
+    Page<Review> findByFiltersExcludingBlocked(@Param("hallId") Long hallId,
                                @Param("seatArea") String seatArea,
                                @Param("seatRow") String seatRow,
                                @Param("seatNumber") String seatNumber,
                                @Param("sort") String sort,
+                               @Param("blockedIds") Set<Long> blockedIds,
                                Pageable pageable);
 
 }

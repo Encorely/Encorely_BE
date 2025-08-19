@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,7 +27,8 @@ public class RestaurantController {
 
     @GetMapping
     @Operation(summary = "공연장별 맛집 후기 목록 조회 API")
-    public ApiResponse<List<ReviewResponseDTO.GetRestaurant>> getRestaurants(@RequestParam Long hallId,
+    public ApiResponse<List<ReviewResponseDTO.GetRestaurant>> getRestaurants(@AuthenticationPrincipal UserDetails userDetails,
+                                                                             @RequestParam Long hallId,
                                                                              @RequestParam(required = false) String keyword,
                                                                              @RequestParam(required = false) RestaurantType type,
                                                                              @RequestParam(defaultValue = "latest") String sort,
@@ -34,7 +37,8 @@ public class RestaurantController {
         String sortKey = ("popular").equalsIgnoreCase(sort) ? "popular" : "latest";
         Pageable pageable = PageRequest.of(page, size, Sort.unsorted());
 
-        return ApiResponse.onSuccess(restaurantService.getRestaurants(hallId, keyword, type, sortKey, pageable));
+        Long currentUserId = (userDetails != null) ? Long.parseLong(userDetails.getUsername()) : null;
+        return ApiResponse.onSuccess(restaurantService.getRestaurants(currentUserId, hallId, keyword, type, sortKey, pageable));
     }
 
 }

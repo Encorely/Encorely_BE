@@ -14,10 +14,9 @@ import spring.encorely.dto.reviewDto.ReviewRequestDTO;
 import spring.encorely.dto.reviewDto.ReviewResponseDTO;
 import spring.encorely.repository.reviewRepository.RestaurantRepository;
 import spring.encorely.repository.reviewRepository.UserKeywordsRepository;
+import spring.encorely.repository.userRepository.UserBlockRepository;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +27,7 @@ public class RestaurantService {
     private final UserKeywordsService userKeywordsService;
     private final ReviewImageService reviewImageService;
     private final UserKeywordsRepository userKeywordsRepository;
+    private final UserBlockRepository userBlockRepository;
 
     public Restaurant findById(Long id) {
         return restaurantRepository.findById(id).orElseThrow(() -> new RestaurantHandler(ErrorStatus.RESTAURANT_NOT_FOUND));
@@ -102,12 +102,17 @@ public class RestaurantService {
         }
     }
 
-    public List<ReviewResponseDTO.GetRestaurant> getRestaurants(Long hallId,String keyword, RestaurantType type,
+    public List<ReviewResponseDTO.GetRestaurant> getRestaurants(Long currentUserId, Long hallId, String keyword, RestaurantType type,
                                                                     String sort, Pageable pageable) {
         String kw = (keyword != null && !keyword.isBlank()) ? keyword : null;
+
+        Set<Long> blockedIds = (currentUserId != null)
+                ? userBlockRepository.findBlockedUserIdsByBlockerId(currentUserId)
+                : Collections.emptySet();
+
         String sortKey = ("popular".equalsIgnoreCase(sort)) ? "popular" : "latest";
 
-        Page<Restaurant> page = restaurantRepository.findByHallAndFilters(hallId, kw, type, sortKey, pageable);
+        Page<Restaurant> page = restaurantRepository.findByHallAndFiltersExcludingBlocked(hallId, kw, type, sortKey, blockedIds, pageable);
         List<Restaurant> restaurants = page.getContent();
         if (restaurants.isEmpty()) return List.of();
 

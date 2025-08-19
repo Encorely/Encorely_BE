@@ -23,6 +23,7 @@ import spring.encorely.dto.reviewDto.ReviewRequestDTO;
 import spring.encorely.dto.reviewDto.ReviewResponseDTO;
 import spring.encorely.exception.NotFoundException;
 import spring.encorely.repository.reviewRepository.*;
+import spring.encorely.repository.userRepository.UserBlockRepository;
 import spring.encorely.service.hallService.HallService;
 import spring.encorely.service.userService.UserService;
 
@@ -30,6 +31,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,6 +49,7 @@ public class ReviewService {
     private final PopularReviewCacheRepository popularReviewCacheRepository;
     private final ReviewImageRepository reviewImageRepository;
     private final UserKeywordsRepository userKeywordsRepository;
+    private final UserBlockRepository userBlockRepository;
 
     public Review findById(Long id) {
         return reviewRepository.findById(id).orElseThrow(() -> new ReviewHandler(ErrorStatus.REVIEW_NOT_FOUND));
@@ -175,24 +178,36 @@ public class ReviewService {
         reviewRepository.delete(review);
     }
 
-    public List<ReviewResponseDTO.PopularReviewInfo> getPopularReviews() {
+    public List<ReviewResponseDTO.PopularReviewInfo> getPopularReviews(Long currentUserId) {
         List<PopularReviewCache> cached = popularReviewCacheRepository.findAll();
 
-        return cached.stream().map(entry -> {
-            Review review = entry.getReview();
-            String showImageUrl = review.getReviewImageList().stream()
-                    .filter(img -> img.getType() == ReviewImageType.SHOW)
-                    .map(ReviewImage::getImageUrl)
-                    .findFirst()
-                    .orElse(null);
+        final Set<Long> blockedIds = (currentUserId != null)
+                ? userBlockRepository.findBlockedUserIdsByBlockerId(currentUserId)
+                : Collections.emptySet();
 
-            return ReviewResponseDTO.PopularReviewInfo.builder()
-                    .reviewId(review.getId())
-                    .reviewImageUrl(showImageUrl)
-                    .userProfileImageUrl(review.getUser().getImageUrl())
-                    .nickname(review.getUser().getNickname())
-                    .build();
-        }).toList();
+        return cached.stream()
+                .filter(entry -> {
+                    Long authorId = entry.getReview().getUser().getId();
+                    return !blockedIds.contains(authorId);
+                })
+                .map(entry -> {
+                    Review review = entry.getReview();
+                    String showImageUrl = review.getReviewImageList().stream()
+                            .filter(img -> img.getType() == ReviewImageType.SHOW)
+                            .map(ReviewImage::getImageUrl)
+                            .findFirst()
+                            .orElse(null);
+
+                    return ReviewResponseDTO.PopularReviewInfo.builder()
+                            .reviewId(review.getId())
+                            .reviewImageUrl(showImageUrl)
+                            .userProfileImageUrl(review.getUser().getImageUrl())
+                            .nickname(review.getUser().getNickname())
+                            .build();
+                })
+                .limit(6)
+                .toList();
+
     }
 
 
@@ -200,7 +215,10 @@ public class ReviewService {
         Page<Review> reviewPage = reviewRepository.findReviewByKeyword(userId, keyword, pageable);
         List<Review> reviews = reviewPage.getContent();
 
+        final Set<Long> blockedIds = userBlockRepository.findBlockedUserIdsByBlockerId(userId);
+
         return reviews.stream()
+                .filter(review -> !blockedIds.contains(review.getUser().getId()))
                 .map(review -> {
                     String showImageUrl = review.getReviewImageList().stream()
                             .filter(img -> img.getType() == ReviewImageType.SHOW)
@@ -219,10 +237,11 @@ public class ReviewService {
                 .collect(Collectors.toList());
     }
 
-    public Page<ReviewResponseDTO.ViewReview> getSeatReviewList(Long hallId, String seatArea, String seatRow, String seatNumber,
+    public Page<ReviewResponseDTO.ViewReview> getSeatReviewList(Long userId, Long hallId, String seatArea, String seatRow, String seatNumber,
                                                                 ReviewImageCategory category, String sort, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Review> reviews = reviewRepository.findByFilters(hallId, seatArea, seatRow, seatNumber, sort, pageable);
+        Set<Long> blockedIds = (userId != null) ? userBlockRepository.findBlockedUserIdsByBlockerId(userId) : Collections.emptySet();
+        Page<Review> reviews = reviewRepository.findByFiltersExcludingBlocked(hallId, seatArea, seatRow, seatNumber, sort, blockedIds, pageable);
         List<Long> reviewIds = reviews.stream().map(Review::getId).collect(Collectors.toList());
         List<ReviewImage> images = reviewImageRepository.findAllByReviewIdInAndCategoryAndTypeAndUsedIsTrue(
                 reviewIds, category, ReviewImageType.VIEW

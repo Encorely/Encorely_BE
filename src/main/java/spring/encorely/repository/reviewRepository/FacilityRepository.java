@@ -11,27 +11,27 @@ import spring.encorely.domain.review.Facility;
 import spring.encorely.domain.review.Review;
 
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface FacilityRepository extends JpaRepository<Facility, Long> {
     List<Facility> findAllByReview(Review review);
+
     @Query("""
-        SELECT f
-        FROM Facility f
-        JOIN f.review rv
-        JOIN rv.hall h
-        WHERE h.id = :hallId
-          AND (:keyword IS NULL OR LOWER(f.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
-          AND (:type IS NULL OR f.facilityType = :type)
-        ORDER BY
-          CASE WHEN :sort = 'latest'  THEN f.createdAt END DESC,
-          CASE WHEN :sort = 'popular' THEN (rv.likeCount + rv.scrapCount) END DESC,
-          f.id DESC
+    SELECT f FROM Facility f
+    WHERE f.review.hall.id = :hallId
+        AND (:keyword IS NULL OR f.name LIKE %:keyword%)
+        AND (:type IS NULL OR f.facilityType = :type)
+        AND (:blockedIds IS NULL OR f.review.user.id NOT IN :blockedIds)
+    ORDER BY
+        CASE WHEN :sort = 'latest' THEN f.createdAt END DESC,
+        CASE WHEN :sort = 'popular' THEN (f.review.likeCount + f.review.scrapCount) END DESC
     """)
-    Page<Facility> findByHallAndFilters(@Param("hallId") Long hallId,
-                                        @Param("keyword") String keyword,
-                                        @Param("type") FacilityType type,
-                                        @Param("sort") String sort,
-                                        Pageable pageable);
+    Page<Facility> findByHallAndFiltersExcludingBlocked(@Param("hallId") Long hallId,
+                                                        @Param("keyword") String keyword,
+                                                        @Param("type") FacilityType type,
+                                                        @Param("sort") String sort,
+                                                        @Param("blockedIds") Set<Long> blockedIds,
+                                                        Pageable pageable);
 
 }

@@ -14,9 +14,12 @@ import spring.encorely.domain.review.Review;
 import spring.encorely.dto.reviewDto.ReviewRequestDTO;
 import spring.encorely.dto.reviewDto.ReviewResponseDTO;
 import spring.encorely.repository.reviewRepository.FacilityRepository;
+import spring.encorely.repository.userRepository.UserBlockRepository;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +27,7 @@ public class FacilityService {
 
     private final FacilityRepository facilityRepository;
     private final ReviewImageService reviewImageService;
+    private final UserBlockRepository userBlockRepository;
 
     public Facility findById(Long id) {
         return facilityRepository.findById(id).orElseThrow(() -> new FacilityHandler(ErrorStatus.FACILITY_NOT_FOUND));
@@ -91,12 +95,17 @@ public class FacilityService {
         }
     }
 
-    public List<ReviewResponseDTO.GetFacility> getFacilities(Long hallId, String keyword, FacilityType type,
+    public List<ReviewResponseDTO.GetFacility> getFacilities(Long currentUserId, Long hallId, String keyword, FacilityType type,
                                                              String sort, Pageable pageable) {
         String kw = (keyword != null && !keyword.isBlank()) ? keyword : null;
+
+        Set<Long> blockedIds = (currentUserId != null)
+                ? userBlockRepository.findBlockedUserIdsByBlockerId(currentUserId)
+                : Collections.emptySet();
+
         String sortKey = ("popular".equalsIgnoreCase(sort)) ? "popular" : "latest";
 
-        Page<Facility> page = facilityRepository.findByHallAndFilters(hallId, kw, type, sortKey, pageable);
+        Page<Facility> page = facilityRepository.findByHallAndFiltersExcludingBlocked(hallId, kw, type, sortKey, blockedIds, pageable);
         List<Facility> facilities = page.getContent();
         if (facilities.isEmpty()) return List.of();
 

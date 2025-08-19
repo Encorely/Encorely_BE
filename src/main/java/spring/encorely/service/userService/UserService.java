@@ -25,10 +25,7 @@ import spring.encorely.repository.userRepository.UserFollowRepository;
 import spring.encorely.repository.userRepository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -135,6 +132,17 @@ public class UserService {
     public void blockUser(Long id, Long userId) {
         User user = findById(id);
         User blockUser = findById(userId);
+
+        boolean isFollowing = userFollowRepository.existsByFollowerAndFollowing(user, blockUser);
+        boolean isFollower = userFollowRepository.existsByFollowerAndFollowing(blockUser, user);
+
+        if (isFollowing) {
+            unfollowUser(id, userId);
+        }
+
+        if (isFollower) {
+            unfollowUser(userId, id);
+        }
 
         UserBlock userBlock = UserBlock.builder()
                 .blocker(user)
@@ -267,25 +275,44 @@ public class UserService {
         }
     }
 
-    public List<UserResponseDTO.PopularUserInfo> getPopularUsers() {
+    public List<UserResponseDTO.PopularUserInfo> getPopularUsers(Long currentUserId) {
         LocalDateTime oneWeekAgo = LocalDateTime.now().minusDays(7);
-        List<Long> userIds = userFollowRepository.findTopFollowedUsersSince(oneWeekAgo, PageRequest.of(0, 6));
 
-        List<User> users = userRepository.findAllById(userIds);
+        Integer targetSize = 6;
+        Integer fetchSize = (currentUserId != null) ? targetSize : 30;
+
+        List<Long> rankedUserIds = userFollowRepository.findTopFollowedUsersSince(oneWeekAgo, PageRequest.of(0, fetchSize));
+
+        if (currentUserId != null && !rankedUserIds.isEmpty()) {
+            Set<Long> blockedIds = userBlockRepository.findBlockedUserIdsByBlockerId(currentUserId);
+            if (blockedIds != null && !blockedIds.isEmpty()) {
+                rankedUserIds = rankedUserIds.stream()
+                        .filter(id -> !blockedIds.contains(id))
+                        .limit(targetSize)
+                        .toList();
+            } else {
+                rankedUserIds = rankedUserIds.stream().limit(targetSize).toList();
+            }
+        } else {
+            rankedUserIds = rankedUserIds.stream().limit(targetSize).toList();
+        }
+
+        if (rankedUserIds.isEmpty()) return List.of();
+
+        List<User> users = userRepository.findAllById(rankedUserIds);
 
         Map<Long, User> userMap = users.stream()
                 .collect(Collectors.toMap(User::getId, Function.identity()));
 
-        return userIds.stream()
-                .map(id -> {
-                    User user = userMap.get(id);
-                    return UserResponseDTO.PopularUserInfo.builder()
-                            .userId(user.getId())
-                            .nickname(user.getNickname())
-                            .imageUrl(user.getImageUrl())
-                            .build();
-                })
-                .collect(Collectors.toList());
+        return rankedUserIds.stream()
+                .map(userMap::get)
+                .filter(Objects::nonNull)
+                .map(user -> UserResponseDTO.PopularUserInfo.builder()
+                        .userId(user.getId())
+                        .nickname(user.getNickname())
+                        .imageUrl(user.getImageUrl())
+                        .build())
+                .toList();
     }
 
     public boolean checkNicknameDuplicate(String nickname) {

@@ -55,25 +55,14 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
             redisTemplate.opsForValue().set(id, refreshToken, 7, TimeUnit.DAYS);
             log.info("Refresh token saved in Redis");
 
-            ResponseCookie accessCookie = ResponseCookie.from("accessToken", accessToken)
-                    .httpOnly(true)
-                    .secure(false)
-                    .path("/")
-                    .maxAge(Duration.ofMinutes(30))
-                    .sameSite("None")
-                    .build();
+            String redirectUri = String.format(
+                    "encorely://oauth/kakao?accessToken=%s&refreshToken=%s",
+                    accessToken,
+                    refreshToken
+            );
 
-            ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
-                    .httpOnly(true)
-                    .secure(false)
-                    .path("/")
-                    .maxAge(Duration.ofDays(7))
-                    .sameSite("None")
-                    .build();
-
-            response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
-            response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
-            response.setStatus(HttpServletResponse.SC_OK);
+            response.setStatus(HttpServletResponse.SC_FOUND);
+            response.setHeader(HttpHeaders.LOCATION, redirectUri);
 
             log.info("OAuth2 authentication success fully processed, tokens set in response");
 

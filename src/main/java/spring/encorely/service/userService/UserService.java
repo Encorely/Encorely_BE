@@ -17,6 +17,7 @@ import spring.encorely.domain.review.ReviewImage;
 import spring.encorely.domain.user.User;
 import spring.encorely.domain.user.UserBlock;
 import spring.encorely.domain.user.UserFollow;
+import spring.encorely.dto.tokenDto.TokenRequestDTO;
 import spring.encorely.dto.userDto.UserRequestDTO;
 import spring.encorely.dto.userDto.UserResponseDTO;
 import spring.encorely.repository.reviewRepository.ReviewRepository;
@@ -320,20 +321,17 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUser(Long userId, HttpServletRequest request) {
+    public void deleteUser(Long userId, TokenRequestDTO.DeleteUser request) {
         User user = findById(userId);
 
-        String refreshToken = redisOps.get(String.valueOf(userId));
-
-        if (refreshToken != null) {
-            Long expiration = jwtTokenUtil.getExpiration(refreshToken);
-            redisOps.getOperations().opsForValue().set("BLACKLIST" + refreshToken, "logout", expiration, TimeUnit.SECONDS);
+        if (request.getRefreshToken() != null) {
+            Long expiration = jwtTokenUtil.getExpiration(request.getRefreshToken());
+            redisOps.getOperations().opsForValue().set("BLACKLIST" + request.getRefreshToken(), "deleteUser", expiration, TimeUnit.MILLISECONDS);
         }
 
-        String accessToken = jwtTokenUtil.extractAccessTokenFromCookie(request);
-        if (accessToken != null) {
-            Long expiration = jwtTokenUtil.getExpiration(accessToken);
-            redisOps.getOperations().opsForValue().set("BLACKLIST" + accessToken, "logout", expiration, TimeUnit.SECONDS);
+        if (request.getAccessToken() != null) {
+            Long expiration = jwtTokenUtil.getExpiration(request.getAccessToken());
+            redisOps.getOperations().opsForValue().set("BLACKLIST" + request.getAccessToken(), "deleteUser", expiration, TimeUnit.MILLISECONDS);
         }
 
         userRepository.delete(user);

@@ -3,8 +3,6 @@ package spring.encorely.config.jwt;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -39,12 +37,8 @@ public class JwtTokenUtil {
 
     // AccessToken 생성
     public String generateAccessToken(String id) {
-
-        User user = userRepository.findById(Long.parseLong(id)).orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
-
-        if (user == null) {
-            throw new UserHandler(ErrorStatus.USER_NOT_FOUND);
-        }
+        User user = userRepository.findById(Long.parseLong(id))
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         return Jwts.builder()
                 .setSubject(id)
@@ -58,12 +52,8 @@ public class JwtTokenUtil {
 
     // RefreshToken 생성
     public String generateRefreshToken(String id) {
-
-        User user = userRepository.findById(Long.parseLong(id)).orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
-
-        if (user == null) {
-            throw new UserHandler(ErrorStatus.USER_NOT_FOUND);
-        }
+        User user = userRepository.findById(Long.parseLong(id))
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         String refreshToken = Jwts.builder()
                 .setSubject(id)
@@ -75,7 +65,6 @@ public class JwtTokenUtil {
                 .compact();
 
         tokenService.saveRefreshToken(id, refreshToken, REFRESH_TOKEN_EXPIRATION);
-
         return refreshToken;
     }
 
@@ -95,27 +84,7 @@ public class JwtTokenUtil {
 
     // 토큰 만료일 추출
     public static long getExpiration(String token) {
-        try {
-            Claims claims = validateToken(token);
-            Date expiration = claims.getExpiration();
-            return expiration.getTime();
-        } catch (ExpiredJwtException e) {
-            throw new AuthHandler(ErrorStatus.TOKEN_EXPIRED);
-        } catch (JwtException e) {
-            throw new AuthHandler(ErrorStatus.INVALID_TOKEN);
-        }
+        Claims claims = validateToken(token);
+        return claims.getExpiration().getTime();
     }
-
-    public static String extractAccessTokenFromCookie(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("accessToken".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
-
 }

@@ -9,6 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import spring.encorely.apiPayload.ApiResponse;
+import spring.encorely.dto.tokenDto.TokenRequestDTO;
 import spring.encorely.dto.userDto.CommonResponseDto;
 import spring.encorely.dto.userDto.UserRequestDTO;
 import spring.encorely.dto.userDto.UserResponseDTO;
@@ -113,7 +114,7 @@ public class UserController {
     @DeleteMapping
     @Operation(summary = "회원탈퇴")
     public ApiResponse<String> deleteUser(@AuthenticationPrincipal UserDetails userDetails,
-                                          HttpServletRequest request) {
+                                          @RequestBody @Valid TokenRequestDTO.DeleteUser request) {
         userService.deleteUser(Long.parseLong(userDetails.getUsername()), request);
         return ApiResponse.onSuccess("탈퇴가 완료되었습니다.");
     }

@@ -4,6 +4,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -15,8 +16,10 @@ import spring.encorely.config.jwt.JwtTokenUtil;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
@@ -27,35 +30,56 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
             throws IOException, ServletException {
-        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
-        String id = oAuth2User.getAttribute("id");
+        log.info("[OAuth2SuccessHandler] Authentication success triggered");
 
-        String accessToken = jwtTokenUtil.generateAccessToken(id);
-        String refreshToken = jwtTokenUtil.generateRefreshToken(id);
+        try {
+            OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+            log.info("Principal class: {}", oAuth2User.getClass().getName());
 
-        redisTemplate.opsForValue().set(id, refreshToken, 7, TimeUnit.DAYS);
+            Map<String, Object> attributes = oAuth2User.getAttributes();
+            log.info("OAuth2User attributes: {}", attributes);
 
-        ResponseCookie accessCookie = ResponseCookie.from("accessToken", accessToken)
-                .httpOnly(true)
-                .secure(false) // 개발환경: false, 운영환경에서는 true로 변경하세요
-                .path("/")
-                .maxAge(Duration.ofMinutes(30))
-                .sameSite("None")
-                .build();
+            String id = (String) attributes.get("id");
+            if (id == null) {
+                throw new IllegalStateException("OAuth2User does not contain 'id' attribute");
+            }
 
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
-                .httpOnly(true)
-                .secure(false) // 개발환경: false
-                .path("/")
-                .maxAge(Duration.ofDays(7))
-                .sameSite("None")
-                .build();
+            log.info("User ID: {}", id);
 
-        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
-        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+            String accessToken = jwtTokenUtil.generateAccessToken(id);
+            String refreshToken = jwtTokenUtil.generateRefreshToken(id);
+            log.info("Access Token: {}", accessToken);
+            log.info("Refresh Token: {}", refreshToken);
 
-        response.setStatus(HttpServletResponse.SC_OK);
+            redisTemplate.opsForValue().set(id, refreshToken, 7, TimeUnit.DAYS);
+            log.info("Refresh token saved in Redis");
+
+            ResponseCookie accessCookie = ResponseCookie.from("accessToken", accessToken)
+                    .httpOnly(true)
+                    .secure(false)
+                    .path("/")
+                    .maxAge(Duration.ofMinutes(30))
+                    .sameSite("None")
+                    .build();
+
+            ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
+                    .httpOnly(true)
+                    .secure(false)
+                    .path("/")
+                    .maxAge(Duration.ofDays(7))
+                    .sameSite("None")
+                    .build();
+
+            response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+            response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+            response.setStatus(HttpServletResponse.SC_OK);
+
+            log.info("OAuth2 authentication success fully processed, tokens set in response");
+
+        } catch (Exception e) {
+            log.error("[OAuth2SuccessHandler] Error during OAuth2 success handling", e);
+            response.sendRedirect("/login?error");
+        }
     }
-
 }

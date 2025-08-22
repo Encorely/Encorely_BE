@@ -47,9 +47,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/reviews/{reviewId}/**", "/api/reviews/reviewRanking",
                                 "/api/reviews/views/**").permitAll()
                         .requestMatchers("/api/addresses/**", "/api/auth/**", "/api/notifications/**", "/api/notification-settings/**",
-                                "/api/s3/**", "/api/files/**", "/api/users/**").hasRole("USER")
+                                "/api/s3/**", "/api/files/**", "/api/users/**", "/api/reviews/**").hasRole("USER")
                         .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**", "/auth/**", "/oauth2/**", "/login/**",
-                                "/error/**", "/api/halls/**", "/api/notices/**", "/api/shows/**", "/api/reviews/**", "/api/restaurants/**",
+                                "/error/**", "/api/halls/**", "/api/notices/**", "/api/shows/**","/api/restaurants/**",
                                 "/api/facilities/**").permitAll()
                         .anyRequest().authenticated()
                 )
